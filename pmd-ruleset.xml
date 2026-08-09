@@ -11,7 +11,7 @@
     <rule ref="category/java/design.xml/CognitiveComplexity">
         <properties>
             <!-- Threshold for method cognitive complexity (Default is 15) -->
-            <property name="methodReportLevel" value="20" />
+            <property name="reportLevel" value="20" />
         </properties>
     </rule>
 </ruleset>
