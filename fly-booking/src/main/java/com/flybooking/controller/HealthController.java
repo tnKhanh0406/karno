@@ -7,6 +7,7 @@ import java.util.Map;
 @RestController
 public class HealthController {
     //test auto deployment
+    //test merge change
     @GetMapping("/health")
     public Map<String, String> health() {
         return Map.of("status", "UP");
