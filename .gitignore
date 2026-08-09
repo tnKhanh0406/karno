@@ -1,0 +1,100 @@
+# ==========================================
+# Java & Maven / Gradle Output
+# ==========================================
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!checkstyle.xml
+
+build/
+.gradle/
+.gradle
+out/
+*.class
+*.jar
+*.war
+*.ear
+*.rar
+
+# Log files
+*.log
+logs/
+
+# Database / Local Embedded DB
+*.db
+*.sqlite
+
+# ==========================================
+# Environment & Configuration (Sensitive Data)
+# ==========================================
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.crt
+
+# ==========================================
+# IDEs & Editors Configuration
+# ==========================================
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+.idea_modules/
+
+# Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# ==========================================
+# OS Generated Files
+# ==========================================
+# Linux / KDE / Ubuntu
+.directory
+*~
+
+# macOS
+.DS_Store
+.apple_names
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthru.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ==========================================
+# Docker & Deployment Artifacts
+# ==========================================
+*.tar
+*.gz

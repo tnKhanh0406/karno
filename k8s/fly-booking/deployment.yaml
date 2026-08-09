@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fly-booking
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fly-booking
+  template:
+    metadata:
+      labels:
+        app: fly-booking
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: fly-booking
+          image: ghcr.io/baosatboiz/fly-booking:latest
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              memory: "300Mi"
+              cpu: "200m"
+            limits:
+              memory: "500Mi"
+              cpu: "500m"
