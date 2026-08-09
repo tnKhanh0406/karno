@@ -43,6 +43,26 @@
 					<includeTestSourceDirectory>true</includeTestSourceDirectory>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>3.21.2</version>
+				<configuration>
+					<rulesets>
+						<ruleset>${maven.multiModuleProjectDirectory}/pmd-ruleset.xml</ruleset>
+					</rulesets>
+					<printFailingErrors>true</printFailingErrors>
+					<failOnViolation>true</failOnViolation>
+					<includeTests>true</includeTests>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 </project>
