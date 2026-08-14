@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: karno-shipping
+  name: karno-shipping-service
   namespace: default
 spec:
   selector:

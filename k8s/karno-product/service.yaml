@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: karno-product
+  name: karno-product-service
   namespace: default
 spec:
   selector:

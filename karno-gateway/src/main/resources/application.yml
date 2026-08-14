@@ -8,14 +8,14 @@ spring:
     gateway:
       routes:
         - id: karno-user-route
-          uri: http://karno-user:80
+          uri: http://karno-user-service:80
           predicates:
             - Path=/api/users/**
           filters:
             - RewritePath=/api/users/(?<segment>.*), /$\{segment}
 
         - id: karno-order-route
-          uri: http://karno-order:80
+          uri: http://karno-order-service:80
           predicates:
             - Path=/api/orders/**
           filters:
