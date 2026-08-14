@@ -79,4 +79,4 @@ jobs:
           script: |
             sudo k3s kubectl apply -f ~/deploy-manifests/k8s/karno-notification/ -n default
             sudo k3s kubectl set image deployment/karno-notification karno-notification=ghcr.io/${{ github.repository_owner }}/karno-notification:${{ github.sha }} -n default
-            sudo k3s kubectl rollout status deployment/karno-notification -n default --timeout=120s
+            sudo k3s kubectl rollout status deployment/karno-notification -n default --timeout=300s
