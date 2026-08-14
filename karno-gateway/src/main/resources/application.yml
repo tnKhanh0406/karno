@@ -1,0 +1,28 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: karno-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: karno-user-route
+          uri: http://karno-user-service:80
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - RewritePath=/api/users/(?<segment>.*), /$\{segment}
+
+        - id: karno-order-route
+          uri: http://karno-order-service:80
+          predicates:
+            - Path=/api/orders/**
+          filters:
+            - RewritePath=/api/orders/(?<segment>.*), /$\{segment}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

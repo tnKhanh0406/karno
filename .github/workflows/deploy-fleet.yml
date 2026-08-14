@@ -1,15 +1,15 @@
-name: Build & Deploy Karno Order Service (GHCR + k3s)
+name: Build & Deploy Karno Fleet Service (GHCR + k3s)
 on:
   push:
     branches: [ "main" ]
     paths:
-      - 'karno-order/**'
-      - 'k8s/**'
+      - 'karno-fleet/**'
+      - 'k8s/karno-fleet/**'
   pull_request:
     branches: [ "main" ]
     paths:
-      - 'karno-order/**'
-      - 'k8s/**'
+      - 'karno-fleet/**'
+      - 'k8s/karno-fleet/**'
 
 permissions:
   contents: read
@@ -32,7 +32,7 @@ jobs:
 
       - name: Build with Maven
         run: mvn clean package -DskipTests
-        working-directory: ./karno-order
+        working-directory: ./karno-fleet
 
       - name: Log in to GitHub Container Registry
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -46,11 +46,11 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: docker/build-push-action@v5
         with:
-          context: ./karno-order
+          context: ./karno-fleet
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/karno-order:latest
-            ghcr.io/${{ github.repository_owner }}/karno-order:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/karno-fleet:latest
+            ghcr.io/${{ github.repository_owner }}/karno-fleet:${{ github.sha }}
 
   deploy-to-k3s:
     name: Deploy to VPS (k3s Cluster)
@@ -67,7 +67,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: "k8s/karno-order/*"
+          source: "k8s/karno-fleet/*"
           target: "~/deploy-manifests/"
 
       - name: Execute Remote SSH Commands on VPS
@@ -77,6 +77,6 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            sudo k3s kubectl apply -f ~/deploy-manifests/k8s/karno-order/ -n default
-            sudo k3s kubectl set image deployment/karno-order karno-order=ghcr.io/${{ github.repository_owner }}/karno-order:${{ github.sha }} -n default
-            sudo k3s kubectl rollout status deployment/karno-order -n default --timeout=120s
+            sudo k3s kubectl apply -f ~/deploy-manifests/k8s/karno-fleet/ -n default
+            sudo k3s kubectl set image deployment/karno-fleet karno-fleet=ghcr.io/${{ github.repository_owner }}/karno-fleet:${{ github.sha }} -n default
+            sudo k3s kubectl rollout status deployment/karno-fleet -n default --timeout=120s

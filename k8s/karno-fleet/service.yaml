@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: karno-fleet-service
+  namespace: default
+spec:
+  selector:
+    app: karno-fleet
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: ClusterIP
