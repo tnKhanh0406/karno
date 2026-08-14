@@ -79,4 +79,4 @@ jobs:
           script: |
             sudo k3s kubectl apply -f ~/deploy-manifests/k8s/karno-gateway/ -n default
             sudo k3s kubectl set image deployment/karno-gateway karno-gateway=ghcr.io/${{ github.repository_owner }}/karno-gateway:${{ github.sha }} -n default
-            sudo k3s kubectl rollout status deployment/karno-gateway -n default --timeout=120s
+            sudo k3s kubectl rollout status deployment/karno-gateway -n default --timeout=300s

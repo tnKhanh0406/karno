@@ -23,6 +23,12 @@ spec:
               value: "-XX:+UseSerialGC -XX:ActiveProcessorCount=2 -Xms128m -Xmx256m"
           ports:
             - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 5
           resources:
             requests:
               memory: "300Mi"

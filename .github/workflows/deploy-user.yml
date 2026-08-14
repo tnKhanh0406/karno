@@ -79,4 +79,4 @@ jobs:
           script: |
             sudo k3s kubectl apply -f ~/deploy-manifests/k8s/karno-user/ -n default
             sudo k3s kubectl set image deployment/karno-user karno-user=ghcr.io/${{ github.repository_owner }}/karno-user:${{ github.sha }} -n default
-            sudo k3s kubectl rollout status deployment/karno-user -n default --timeout=120s
+            sudo k3s kubectl rollout status deployment/karno-user -n default --timeout=300s
