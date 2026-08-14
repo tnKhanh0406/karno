@@ -4,12 +4,12 @@ on:
     branches: [ "main" ]
     paths:
       - 'karno-user/**'
-      - 'k8s/**'
+      - 'k8s/karno-user/**'
   pull_request:
     branches: [ "main" ]
     paths:
       - 'karno-user/**'
-      - 'k8s/**'
+      - 'k8s/karno-user/**'
 
 permissions:
   contents: read

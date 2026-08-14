@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: karno-notification
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: karno-notification
+  template:
+    metadata:
+      labels:
+        app: karno-notification
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: karno-notification
+          image: ghcr.io/baosatboiz/karno-notification:latest
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: "-XX:+UseSerialGC -XX:ActiveProcessorCount=2 -Xms128m -Xmx256m"
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              memory: "300Mi"
+              cpu: "200m"
+            limits:
+              memory: "500Mi"
+              cpu: "500m"

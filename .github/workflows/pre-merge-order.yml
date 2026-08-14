@@ -1,11 +1,10 @@
-name: Pre-Merge Check (Verify & Test)
+name: Pre-Merge Check Karno Order
 
 on:
   pull_request:
     branches: [ "main" ]
     paths:
       - 'karno-order/**'
-      - 'karno-user/**'
 
 permissions:
   contents: read
@@ -26,8 +25,5 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Check Code Style (Checkstyle & PMD)
-        run: mvn checkstyle:check pmd:check
-
-      - name: Build and Test with Maven
-        run: mvn clean test
+      - name: Check Code Style & Run Tests
+        run: mvn clean test checkstyle:check pmd:check -pl :karno-order
