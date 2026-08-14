@@ -9,9 +9,9 @@
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<groupId>com.flybooking</groupId>
-	<artifactId>fly-booking</artifactId>
+	<artifactId>karno-order</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>fly-booking</name>
+	<name>karno-order</name>
 	<description>Demo project for Spring Boot</description>
 	<properties>
 		<java.version>21</java.version>

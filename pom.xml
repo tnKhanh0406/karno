@@ -19,7 +19,7 @@
 	</properties>
 
 	<modules>
-		<module>fly-booking</module>
+		<module>karno-order</module>
 	</modules>
 
 	<build>

@@ -1,13 +1,15 @@
-name: Build & Deploy Fly Booking Service (GHCR + k3s)
+name: Build & Deploy Karno Order Service (GHCR + k3s)
 on:
   push:
     branches: [ "main" ]
     paths:
-      - 'fly-booking/**'
+      - 'karno-order/**'
+      - 'k8s/**'
   pull_request:
     branches: [ "main" ]
     paths:
-      - 'fly-booking/**'
+      - 'karno-order/**'
+      - 'k8s/**'
 
 permissions:
   contents: read
@@ -30,7 +32,7 @@ jobs:
 
       - name: Build with Maven
         run: mvn clean package -DskipTests
-        working-directory: ./fly-booking
+        working-directory: ./karno-order
 
       - name: Log in to GitHub Container Registry
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -44,11 +46,11 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: docker/build-push-action@v5
         with:
-          context: ./fly-booking
+          context: ./karno-order
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/fly-booking:latest
-            ghcr.io/${{ github.repository_owner }}/fly-booking:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/karno-order:latest
+            ghcr.io/${{ github.repository_owner }}/karno-order:${{ github.sha }}
 
   deploy-to-k3s:
     name: Deploy to VPS (k3s Cluster)
@@ -56,6 +58,18 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Copy Kubernetes Manifests to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "k8s/karno-order/*"
+          target: "~/deploy-manifests/"
+
       - name: Execute Remote SSH Commands on VPS
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -63,5 +77,6 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            sudo k3s kubectl set image deployment/fly-booking fly-booking=ghcr.io/${{ github.repository_owner }}/fly-booking:${{ github.sha }} -n default
-            sudo k3s kubectl rollout status deployment/fly-booking -n default --timeout=120s
+            sudo k3s kubectl apply -f ~/deploy-manifests/k8s/karno-order/ -n default
+            sudo k3s kubectl set image deployment/karno-order karno-order=ghcr.io/${{ github.repository_owner }}/karno-order:${{ github.sha }} -n default
+            sudo k3s kubectl rollout status deployment/karno-order -n default --timeout=120s
