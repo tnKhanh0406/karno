@@ -20,6 +20,7 @@
 
 	<modules>
 		<module>karno-order</module>
+		<module>karno-user</module>
 	</modules>
 
 	<build>
