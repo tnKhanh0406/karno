@@ -1,13 +1,13 @@
-package com.flybooking;
+package com.karnoorder;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class FlyBookingApplication {
+public class KarnoOrderApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(FlyBookingApplication.class, args);
+		SpringApplication.run(KarnoOrderApplication.class, args);
 	}
 
 }

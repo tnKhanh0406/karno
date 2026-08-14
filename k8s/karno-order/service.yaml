@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: fly-booking-service
+  name: karno-order-service
   namespace: default
 spec:
   selector:
-    app: fly-booking
+    app: karno-order
   ports:
     - port: 80
       targetPort: 8080
