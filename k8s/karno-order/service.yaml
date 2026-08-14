@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: karno-order-service
+  name: karno-order
   namespace: default
 spec:
   selector:
