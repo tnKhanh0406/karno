@@ -67,3 +67,14 @@ CREATE TABLE order_status_histories (
     description TEXT,
     occurred_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+COMMENT ON TABLE carts IS 'Bảng giỏ hàng cá nhân của người mua';
+COMMENT ON TABLE cart_items IS 'Bảng lưu các sản phẩm chi tiết có trong giỏ hàng';
+COMMENT ON TABLE orders IS 'Bảng lưu trữ thông tin đơn hàng chính thức do khách đặt';
+COMMENT ON TABLE order_items IS 'Bảng lưu chi tiết các sản phẩm trong đơn hàng (Lưu dạng Snapshot dữ liệu tại thời điểm đặt)';
+COMMENT ON TABLE order_status_histories IS 'Bảng lịch sử vết chuyển đổi trạng thái của đơn hàng (Timeline Audit Log)';
+
+COMMENT ON COLUMN orders.payment_method IS 'Phương thức thanh toán: COD (Tiền mặt), ONLINE (Thanh toán trực tuyến)';
+COMMENT ON COLUMN orders.delivery_slot_start IS 'Khung giờ sớm nhất khách rảnh để nhận hàng (Nếu chọn khung giờ 18h-21h thì start sẽ là 18h)';
+COMMENT ON COLUMN orders.delivery_slot_end IS 'Khung giờ muộn nhất khách có thể nhận hàng (Nếu chọn khung giờ 18h-21h thì end sẽ là 21h)';
+COMMENT ON COLUMN order_status_histories.actor_type IS 'Đối tượng thực hiện thay đổi: CUSTOMER, SELLER, SHIPPER, HUB_STAFF, ADMIN, SYSTEM';

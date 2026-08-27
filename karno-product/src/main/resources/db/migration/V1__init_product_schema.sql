@@ -78,3 +78,17 @@ CREATE TABLE product_reviews (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+COMMENT ON TABLE categories IS 'Danh mục sản phẩm (Hỗ trợ cấu trúc phân cấp danh mục cha - con)';
+COMMENT ON TABLE products IS 'Bảng lưu trữ thông tin sản phẩm chính';
+COMMENT ON TABLE product_variants IS 'Bảng lưu các biến thể của sản phẩm';
+COMMENT ON TABLE product_attributes IS 'Bảng lưu các thuộc tính sản phẩm do Shop tự định nghĩa (Màu sắc, Size)';
+COMMENT ON TABLE product_attribute_values IS 'Bảng lưu giá trị cụ thể của thuộc tính (Đỏ, Xanh, L, XL)';
+COMMENT ON TABLE variant_attribute_value IS 'Bảng liên kết nhiều - nhiều giữa biến thể sản phẩm và giá trị thuộc tính';
+COMMENT ON TABLE product_images IS 'Bảng quản lý hình ảnh của sản phẩm và biến thể';
+COMMENT ON TABLE product_reviews IS 'Bảng lưu đánh giá và bình luận của khách hàng sau khi mua hàng';
+
+COMMENT ON COLUMN categories.parent_id IS 'Xác định danh mục cha của danh mục hiện tại, null thì không có cha'
+COMMENT ON COLUMN products.status IS 'Trạng thái sản phẩm: DRAFT (Nháp), ACTIVE (Đang bán), INACTIVE (Ngừng bán), DELETED (Đã xóa)';
+COMMENT ON COLUMN products.thumbnail_img IS 'Snapshot ảnh chính của product'
+COMMENT ON COLUMN product_variants.weight_gram IS 'Khối lượng đóng gói tính theo Gram';
