@@ -1,9 +1,9 @@
 -- Table: users
 CREATE TABLE users (
     id UUID PRIMARY KEY,
-    username VARCHAR(20) NOT NULL UNIQUE,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    phone VARCHAR(20) UNIQUE,
+    username VARCHAR(20) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(20),
     password VARCHAR(255) NOT NULL,
     full_name VARCHAR(255),
     avatar_url TEXT,
@@ -16,7 +16,7 @@ CREATE TABLE users (
 -- Table: user_addresses
 CREATE TABLE user_addresses (
     id UUID PRIMARY KEY,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id),
     receiver_name VARCHAR(255) NOT NULL,
     receiver_address VARCHAR(500) NOT NULL,
     receiver_phone VARCHAR(20) NOT NULL,

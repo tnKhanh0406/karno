@@ -1,22 +1,22 @@
 -- Table: carts
 CREATE TABLE carts (
-    id UUID PRIMARY KEY DEFAULT,
-    customer_id UUID NOT NULL UNIQUE
+    id UUID PRIMARY KEY,
+    customer_id UUID NOT NULL
 );
 
 -- Table: cart_items
 CREATE TABLE cart_items (
-    id UUID PRIMARY KEY DEFAULT,
-    cart_id UUID NOT NULL REFERENCES carts(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY,
+    cart_id UUID NOT NULL REFERENCES carts(id),
     variant_id UUID NOT NULL,
     product_id UUID NOT NULL,
     shop_id UUID NOT NULL,
-    quantity INT NOT NULL DEFAULT 1 CHECK (quantity > 0)
+    quantity INT NOT NULL DEFAULT 1
 );
 
 -- Table: orders
 CREATE TABLE orders (
-    id UUID PRIMARY KEY DEFAULT,
+    id UUID PRIMARY KEY,
     customer_id UUID NOT NULL,
     receiver_name VARCHAR(255) NOT NULL,
     receiver_address VARCHAR(500) NOT NULL,
@@ -38,8 +38,8 @@ CREATE TABLE orders (
 
 -- Table: order_items
 CREATE TABLE order_items (
-    id UUID PRIMARY KEY DEFAULT,
-    order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY,
+    order_id UUID NOT NULL REFERENCES orders(id),
     product_id UUID NOT NULL,
     variant_id UUID NOT NULL,
     product_name VARCHAR(255) NOT NULL,
@@ -47,7 +47,7 @@ CREATE TABLE order_items (
     sku VARCHAR(100),
     product_image_url TEXT,
     unit_price DECIMAL(15, 2) NOT NULL,
-    quantity INT NOT NULL CHECK (quantity > 0),
+    quantity INT NOT NULL,
     subtotal DECIMAL(15, 2) NOT NULL,
     weight_gram INT DEFAULT 0,
     length_cm DECIMAL(10, 2) DEFAULT 0,
@@ -58,8 +58,8 @@ CREATE TABLE order_items (
 
 -- Table: order_status_histories
 CREATE TABLE order_status_histories (
-    id UUID PRIMARY KEY DEFAULT,
-    order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY,
+    order_id UUID NOT NULL REFERENCES orders(id),
     from_status VARCHAR(50),
     to_status VARCHAR(50) NOT NULL,
     actor_type VARCHAR(50) NOT NULL, -- CUSTOMER, SELLER, SHIPPER, HUB_STAFF, ADMIN, SYSTEM

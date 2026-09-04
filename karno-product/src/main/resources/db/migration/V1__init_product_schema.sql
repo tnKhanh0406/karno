@@ -1,9 +1,9 @@
 -- Table: categories
 CREATE TABLE categories (
     id UUID PRIMARY KEY,
-    parent_id UUID REFERENCES categories(id) ON DELETE SET NULL,
+    parent_id UUID REFERENCES categories(id),
     name VARCHAR(255) NOT NULL,
-    slug VARCHAR(255) NOT NULL UNIQUE,
+    slug VARCHAR(255) NOT NULL,
     image_url TEXT
 );
 
@@ -25,7 +25,7 @@ CREATE TABLE products (
 -- Table: product_variants
 CREATE TABLE product_variants (
     id UUID PRIMARY KEY,
-    product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    product_id UUID NOT NULL REFERENCES products(id),
     sku VARCHAR(100) UNIQUE,
     name VARCHAR(255) NOT NULL,
     price DECIMAL(15, 2) NOT NULL,
@@ -46,15 +46,15 @@ CREATE TABLE product_attributes (
 -- Table: product_attribute_values
 CREATE TABLE product_attribute_values (
     id UUID PRIMARY KEY,
-    attribute_id UUID NOT NULL REFERENCES product_attributes(id) ON DELETE CASCADE,
+    attribute_id UUID NOT NULL REFERENCES product_attributes(id),
     value VARCHAR(100) NOT NULL
 );
 
 -- Table: variant_attribute_value
 CREATE TABLE variant_attribute_value (
     id UUID PRIMARY KEY,
-    attribute_value_id UUID NOT NULL REFERENCES product_attribute_values(id) ON DELETE CASCADE,
-    variant_id UUID NOT NULL REFERENCES product_variants(id) ON DELETE CASCADE
+    attribute_value_id UUID NOT NULL REFERENCES product_attribute_values(id),
+    variant_id UUID NOT NULL REFERENCES product_variants(id)
 );
 
 -- Table: product_images

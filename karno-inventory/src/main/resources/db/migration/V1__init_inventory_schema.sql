@@ -1,6 +1,6 @@
 -- Table: inventories
 CREATE TABLE inventories (
-    id UUID PRIMARY KEY DEFAULT,
+    id UUID PRIMARY KEY,
     shop_id UUID NOT NULL,
     variant_id UUID NOT NULL UNIQUE,
     on_hand_quantity INT NOT NULL DEFAULT 0 CHECK (on_hand_quantity >= 0),
@@ -11,7 +11,7 @@ CREATE TABLE inventories (
 
 -- Table: inventory_reservations
 CREATE TABLE inventory_reservations (
-    id UUID PRIMARY KEY DEFAULT,
+    id UUID PRIMARY KEY,
     inventory_id UUID NOT NULL REFERENCES inventories(id) ON DELETE CASCADE,
     order_id UUID NOT NULL,
     order_item_id UUID NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE inventory_reservations (
 
 -- Table: inventory_movements
 CREATE TABLE inventory_movements (
-    id UUID PRIMARY KEY DEFAULT,
+    id UUID PRIMARY KEY,
     inventory_id UUID NOT NULL REFERENCES inventories(id) ON DELETE CASCADE,
     type VARCHAR(40) NOT NULL,
     quantity INT NOT NULL,
