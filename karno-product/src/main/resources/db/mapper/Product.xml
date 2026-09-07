@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.karnoproduct.repository.ProductRepo">
+<!--    <resultMap id="productListProjectionMap"-->
+<!--               type="com.karnoproduct.repository.projection.ProductListProjection">-->
+
+<!--        <id property="id" column="id"/>-->
+<!--        <result property="name" column="name"/>-->
+<!--        <result property="thumbnailImg" column="thumbnail_img"/>-->
+<!--        <result property="minPrice" column="min_price"/>-->
+<!--        <result property="rating" column="rating"/>-->
+<!--        <result property="soldCount" column="sold_count"/>-->
+<!--    </resultMap>-->
+    <sql id="categoryTree">
+        <if test="request.categoryId != null">
+            WITH RECURSIVE category_tree AS (
+                SELECT id
+                FROM categories
+                WHERE id = #{request.categoryId}
+
+                UNION ALL
+
+                SELECT c.id
+                FROM categories c
+                INNER JOIN category_tree ct
+                ON c.parent_id = ct.id
+            )
+        </if>
+    </sql>
+    <select id="searchProducts" resultType="com.karnoproduct.repository.projection.ProductListProjection">
+        <include refid="categoryTree"/>
+
+        SELECT
+            p.id AS id,
+            p.name AS name,
+            p.thumbnail_img AS thumbnail_img,
+            MIN(v.price) AS min_price,
+            p.rating AS rating,
+            p.sold_count AS sold_count
+        FROM products p
+        INNER JOIN product_variants v
+        ON p.id = v.product_id
+        WHERE p.status = 'ACTIVE'
+
+        <if test="request.keyword != null and request.keyword != ''"> AND LOWER(p.name) LIKE CONCAT('%', LOWER(#{request.keyword}), '%') </if>
+        <if test="request.categoryId != null">
+            AND p.category_id IN (
+                SELECT id
+                FROM category_tree
+            )
+        </if>
+        <if test="request.shopId != null"> AND p.shop_id = #{request.shopId}</if>
+        <if test="request.minRating != null"> AND p.rating &gt;= #{request.minRating}</if>
+
+        GROUP BY
+        p.id,
+        p.name,
+        p.thumbnail_img,
+        p.rating,
+        p.sold_count,
+        p.created_at
+
+        <if test="request.minPrice != null or request.maxPrice != null">
+            HAVING 1 = 1
+            <if test="request.minPrice != null">AND MIN(v.price) &gt;= #{request.minPrice}</if>
+            <if test="request.maxPrice != null">AND MIN(v.price) &lt;= #{request.maxPrice}</if>
+        </if>
+
+        <choose>
+            <when test="request.sort != null and request.sort.name() == 'PRICE_ASC'">
+                ORDER BY MIN(v.price) ASC
+            </when>
+
+            <when test="request.sort != null and request.sort.name() == 'PRICE_DESC'">
+                ORDER BY MIN(v.price) DESC
+            </when>
+
+            <when test="request.sort != null and request.sort.name() == 'RATING_DESC'">
+                ORDER BY p.rating DESC
+            </when>
+
+            <when test="request.sort != null and request.sort.name() == 'SOLD_DESC'">
+                ORDER BY p.sold_count DESC
+            </when>
+
+            <otherwise>
+                ORDER BY p.created_at DESC
+            </otherwise>
+
+        </choose>
+
+        LIMIT #{limit}
+        OFFSET #{offset}
+
+    </select>
+
+    <select id="countProducts" resultType="long">
+        <include refid="categoryTree"/>
+
+        SELECT COUNT(*)
+        FROM (
+            SELECT p.id
+            FROM products p
+            INNER JOIN product_variants pv
+            ON pv.product_id = p.id
+            WHERE p.status = 'ACTIVE'
+
+            <if test="request.keyword != null and request.keyword != ''"> AND LOWER(p.name) LIKE CONCAT('%', LOWER(#{request.keyword}), '%') </if>
+            <if test="request.categoryId != null">
+                AND p.category_id IN (
+                    SELECT id
+                    FROM category_tree
+                )
+            </if>
+            <if test="request.shopId != null"> AND p.shop_id = #{request.shopId} </if>
+            <if test="request.minRating != null"> AND p.rating &gt;= #{request.minRating} </if>
+
+            GROUP BY p.id
+
+            <if test="request.minPrice != null or request.maxPrice != null">
+                HAVING 1 = 1
+                <if test="request.minPrice != null"> AND MIN(pv.price) &gt;= #{request.minPrice} </if>
+                <if test="request.maxPrice != null"> AND MIN(pv.price) &lt;= #{request.maxPrice} </if>
+            </if>
+
+        ) result
+    </select>
+</mapper>

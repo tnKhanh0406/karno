@@ -88,7 +88,7 @@ COMMENT ON TABLE variant_attribute_value IS 'Bảng liên kết nhiều - nhiề
 COMMENT ON TABLE product_images IS 'Bảng quản lý hình ảnh của sản phẩm và biến thể';
 COMMENT ON TABLE product_reviews IS 'Bảng lưu đánh giá và bình luận của khách hàng sau khi mua hàng';
 
-COMMENT ON COLUMN categories.parent_id IS 'Xác định danh mục cha của danh mục hiện tại, null thì không có cha'
+COMMENT ON COLUMN categories.parent_id IS 'Xác định danh mục cha của danh mục hiện tại, null thì không có cha';
 COMMENT ON COLUMN products.status IS 'Trạng thái sản phẩm: DRAFT (Nháp), ACTIVE (Đang bán), INACTIVE (Ngừng bán), DELETED (Đã xóa)';
-COMMENT ON COLUMN products.thumbnail_img IS 'Snapshot ảnh chính của product'
+COMMENT ON COLUMN products.thumbnail_img IS 'Snapshot ảnh chính của product';
 COMMENT ON COLUMN product_variants.weight_gram IS 'Khối lượng đóng gói tính theo Gram';
