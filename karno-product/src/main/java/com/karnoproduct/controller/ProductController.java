@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Mono;
 
 @RestController
 @RequiredArgsConstructor
@@ -18,7 +17,7 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping
-    public Mono<PageResponse<ProductListItemResponse>> getProducts(@ModelAttribute ProductSearchRequest request) {
+    public PageResponse<ProductListItemResponse> getProducts(@ModelAttribute ProductSearchRequest request) {
         return productService.getProductList(request);
     }
 }
