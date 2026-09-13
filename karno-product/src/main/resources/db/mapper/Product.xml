@@ -4,16 +4,6 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.karnoproduct.repository.ProductRepo">
-<!--    <resultMap id="productListProjectionMap"-->
-<!--               type="com.karnoproduct.repository.projection.ProductListProjection">-->
-
-<!--        <id property="id" column="id"/>-->
-<!--        <result property="name" column="name"/>-->
-<!--        <result property="thumbnailImg" column="thumbnail_img"/>-->
-<!--        <result property="minPrice" column="min_price"/>-->
-<!--        <result property="rating" column="rating"/>-->
-<!--        <result property="soldCount" column="sold_count"/>-->
-<!--    </resultMap>-->
     <sql id="categoryTree">
         <if test="request.categoryId != null">
             WITH RECURSIVE category_tree AS (

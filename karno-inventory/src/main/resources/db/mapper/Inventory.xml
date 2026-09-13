@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.karnoinventory.repository.InventoryRepo">
+    <select id="getAvailabilityByVariantIds" resultType="com.karnoinventory.dto.response.VariantInventoryResponse">
+        SELECT
+            variant_id,
+            GREATEST(
+                on_hand_quantity - reserved_quantity,
+                0
+            ) AS available_quantity
+        FROM inventories
+        WHERE variant_id IN
+
+        <foreach collection="variantIds"
+                 item="variantId"
+                 open="("
+                 separator=","
+                 close=")">
+            #{variantId}
+        </foreach>
+    </select>
+</mapper>

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.karnoproduct.repository.ProductDetailRepo">
+    <select id="getProductDetail" resultType="com.karnoproduct.repository.projection.ProductDetailProjection">
+        SELECT
+            p.id AS id,
+            p.shop_id AS shop_id,
+            p.category_id AS category_id,
+            p.name AS name,
+            p.description AS description,
+            p.thumbnail_img AS thumbnail_img,
+            p.sold_count AS sold_count,
+            p.rating AS rating,
+            MIN(v.price) AS min_price,
+            MAX(v.price) AS max_price
+        FROM products p
+        INNER JOIN product_variants v ON p.id = v.product_id
+        WHERE p.id = #{productId}
+        AND p.status = 'ACTIVE'
+        GROUP BY
+        p.id,
+        p.shop_id,
+        p.category_id,
+        p.name,
+        p.description,
+        p.thumbnail_img,
+        p.sold_count,
+        p.rating
+    </select>
+
+    <select id="getVariantsByProductId" resultType="com.karnoproduct.repository.projection.VariantProjection">
+        SELECT
+            v.id AS id,
+            v.product_id AS product_id,
+            v.sku AS sku,
+            v.name AS name,
+            v.price AS price,
+            v.primary_img AS primary_img
+        FROM product_variants v
+        WHERE v.product_id = #{productId}
+    </select>
+
+    <select id="getImagesByProductId" resultType="com.karnoproduct.dto.response.ImageResponse">
+        SELECT
+            pi.id AS id,
+            pi.image_type AS image_type,
+            pi.image_url AS url
+        FROM product_images pi
+        LEFT JOIN product_variants pv ON pv.id = pi.variant_id
+        WHERE pi.product_id = #{productId} OR pv.product_id = #{productId}
+    </select>
+
+    <select id="getAttributesByProductId" resultType="com.karnoproduct.repository.projection.AttributeValueProjection">
+        SELECT DISTINCT
+            pa.id AS attribute_id,
+            pa.name AS attribute_name,
+            pav.id AS value_id,
+            pav.value AS value
+        FROM product_variants pv
+        JOIN variant_attribute_value vav ON vav.variant_id = pv.id
+        JOIN product_attribute_values pav ON pav.id = vav.attribute_value_id
+        JOIN product_attributes pa ON pa.id = pav.attribute_id
+        WHERE pv.product_id = #{productId}
+    </select>
+
+    <select id="getVariantAttributeValuesByProductId" resultType="com.karnoproduct.repository.projection.VariantAttributeValueProjection">
+        SELECT
+            pv.id AS variant_id,
+            vav.attribute_value_id AS attribute_value_id
+        FROM product_variants pv
+        JOIN variant_attribute_value vav ON vav.variant_id = pv.id
+        WHERE pv.product_id = #{productId}
+    </select>
+
+    <select id="getCategoryBreadcrumbs" resultType="com.karnoproduct.dto.response.CategoryResponse">
+        WITH RECURSIVE category_tree AS (
+            SELECT
+                id,
+                parent_id,
+                name,
+                slug,
+                0 AS depth
+            FROM categories
+            WHERE id = #{categoryId}
+
+            UNION ALL
+
+            SELECT
+                c.id,
+                c.parent_id,
+                c.name,
+                c.slug,
+                ct.depth + 1
+            FROM categories c
+            JOIN category_tree ct ON c.id = ct.parent_id
+        )
+
+        SELECT
+            id,
+            name,
+            slug
+        FROM category_tree
+        ORDER BY depth DESC
+    </select>
+
+</mapper>
