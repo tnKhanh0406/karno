@@ -25,5 +25,5 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Check Code Style & Run Tests
-        run: mvn clean test checkstyle:check pmd:check -pl :karno-inventory
+      - name: Check Code Style & Compile Tests
+        run: mvn clean test-compile checkstyle:check pmd:check -pl :karno-inventory
