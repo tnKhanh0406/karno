@@ -19,6 +19,9 @@ spec:
       containers:
         - name: karno-hub
           image: ghcr.io/baosatboiz/karno-hub:latest
+          envFrom:
+            - secretRef:
+                name: global-karno-env
           env:
             - name: JAVA_TOOL_OPTIONS
               value: "-XX:+UseSerialGC -XX:ActiveProcessorCount=2 -Xms128m -Xmx256m"
