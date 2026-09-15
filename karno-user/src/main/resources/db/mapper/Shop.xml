@@ -14,4 +14,22 @@
         WHERE id = #{shopId}
         AND status = 'ACTIVE'
     </select>
+
+    <select id="findShopInformationByIds" resultType="com.karnouser.dto.response.ShopInformationResponse">
+        SELECT
+            id,
+            name,
+            description,
+            logo_url AS logoUrl
+        FROM shops
+        WHERE id IN
+        <foreach collection="shopIds"
+                 item="shopId"
+                 open="("
+                 separator=","
+                 close=")">
+            #{shopId}
+        </foreach>
+        AND status = 'ACTIVE'
+    </select>
 </mapper>

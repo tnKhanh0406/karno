@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.karnoproduct.repository.ProductVariantRepo">
+    <select id="getAttributesByVariantIds" resultType="com.karnoproduct.repository.projection.VariantAttributeProjection">
+        SELECT
+            vav.variant_id,
+            pa.id AS attribute_id,
+            pa.name AS attribute_name,
+            pav.id AS attribute_value_id,
+            pav.value AS attribute_value_name
+        FROM variant_attribute_value vav
+        JOIN product_attribute_values pav ON pav.id = vav.attribute_value_id
+        JOIN product_attributes pa ON pa.id = pav.attribute_id
+        WHERE vav.variant_id IN
+        <foreach collection="variantIds"
+                 item="variantId"
+                 open="("
+                 separator=","
+                 close=")">
+            #{variantId}
+        </foreach>
+    </select>
+
+</mapper>

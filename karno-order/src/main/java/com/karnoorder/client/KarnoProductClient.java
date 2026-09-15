@@ -1,0 +1,15 @@
+package com.karnoorder.client;
+
+import com.karnoorder.dto.request.UUIDListRequest;
+import com.karnoorder.dto.response.VariantCartResponse;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.List;
+
+@FeignClient(name = "karno-product", url = "${services.karno-product.base-url}")
+public interface KarnoProductClient {
+    @PostMapping("/internal/product-variants/cart-info")
+    List<VariantCartResponse> getVariantCartInfo(@RequestBody UUIDListRequest request);
+}

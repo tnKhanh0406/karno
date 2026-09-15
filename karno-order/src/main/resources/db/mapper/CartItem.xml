@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.karnoorder.repository.CartItemRepo">
+    <select id="countCartItemsByCartId" resultType="int">
+        SELECT COUNT(*) FROM cart_items WHERE cart_id = #{cartId}
+    </select>
+
+    <select id="getCartItemsByCartId" resultType="com.karnoorder.repository.projection.CartItemProjection">
+        SELECT
+            id,
+            product_id,
+            variant_id,
+            shop_id,
+            quantity
+        FROM cart_items
+        WHERE cart_id = #{cartId}
+    </select>
+</mapper>

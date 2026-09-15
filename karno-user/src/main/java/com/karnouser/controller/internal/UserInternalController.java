@@ -1,6 +1,6 @@
 package com.karnouser.controller.internal;
 
-import com.karnouser.dto.request.UserUUIDRequest;
+import com.karnouser.dto.request.UUIDListRequest;
 import com.karnouser.dto.response.ReviewUserResponse;
 import com.karnouser.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ public class UserInternalController {
     private final UserService userService;
 
     @PostMapping("/batch")
-    public List<ReviewUserResponse> getUsersByIds(@RequestBody UserUUIDRequest request) {
-        return userService.getUsersByIds(request.userIds());
+    public List<ReviewUserResponse> getUsersByIds(@RequestBody UUIDListRequest request) {
+        return userService.getUsersByIds(request.UUIDs());
     }
 }

@@ -1,13 +1,12 @@
 package com.karnouser.controller.internal;
 
+import com.karnouser.dto.request.UUIDListRequest;
 import com.karnouser.dto.response.ShopInformationResponse;
 import com.karnouser.service.ShopService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -19,5 +18,10 @@ public class ShopInternalController {
     @GetMapping("/{shopId}")
     public ShopInformationResponse getShopInformation(@PathVariable UUID shopId) {
         return shopService.getShopInformation(shopId);
+    }
+
+    @PostMapping("/batch")
+    public List<ShopInformationResponse> getShopsByIds(@RequestBody UUIDListRequest request) {
+        return shopService.getShopsByIds(request.UUIDs());
     }
 }

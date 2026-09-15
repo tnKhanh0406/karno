@@ -7,6 +7,7 @@ import com.karnouser.service.ShopService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -21,5 +22,13 @@ public class ShopServiceImpl implements ShopService {
             throw new NotFoundException("Shop not found");
         }
         return shop;
+    }
+
+    @Override
+    public List<ShopInformationResponse> getShopsByIds(List<UUID> shopIds) {
+        if (shopIds == null || shopIds.isEmpty()) {
+            return List.of();
+        }
+        return shopRepo.findShopInformationByIds(shopIds);
     }
 }

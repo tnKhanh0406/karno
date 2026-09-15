@@ -1,6 +1,6 @@
 package com.karnoproduct.client;
 
-import com.karnoproduct.dto.request.UserUUIDRequest;
+import com.karnoproduct.dto.request.UUIDListRequest;
 import com.karnoproduct.dto.response.ReviewUserResponse;
 import com.karnoproduct.dto.response.ShopInformationResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -18,5 +18,5 @@ public interface KarnoUserClient {
     ShopInformationResponse getShopById(@PathVariable("shopId") UUID shopId);
 
     @PostMapping("/internal/users/batch")
-    List<ReviewUserResponse> getUsersByIds(@RequestBody UserUUIDRequest request);
+    List<ReviewUserResponse> getUsersByIds(@RequestBody UUIDListRequest request);
 }

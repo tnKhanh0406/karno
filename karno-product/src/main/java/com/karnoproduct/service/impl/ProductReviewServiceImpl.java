@@ -1,7 +1,7 @@
 package com.karnoproduct.service.impl;
 
 import com.karnoproduct.client.KarnoUserClient;
-import com.karnoproduct.dto.request.UserUUIDRequest;
+import com.karnoproduct.dto.request.UUIDListRequest;
 import com.karnoproduct.dto.response.PageResponse;
 import com.karnoproduct.dto.response.ProductReviewResponse;
 import com.karnoproduct.dto.response.ReviewUserResponse;
@@ -42,7 +42,7 @@ public class ProductReviewServiceImpl implements ProductReviewService {
                 .toList();
 
         List<ReviewUserResponse> users =
-                userIds.isEmpty() ? Collections.emptyList() : karnoUserClient.getUsersByIds(new UserUUIDRequest(userIds));
+                userIds.isEmpty() ? Collections.emptyList() : karnoUserClient.getUsersByIds(new UUIDListRequest(userIds));
 
         Map<UUID, ReviewUserResponse> userById = new HashMap<>();
 
