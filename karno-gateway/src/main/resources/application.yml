@@ -21,6 +21,13 @@ spring:
           filters:
             - RewritePath=/api/orders/(?<segment>.*), /$\{segment}
 
+        - id:  karno-product-route
+          uri: http://karno-product-service:80
+          predicates:
+            - Path=/api/products/**
+          filters:
+            - RewritePath=/api/products/(?<segment>.*), /$\{segment}
+
 management:
   endpoints:
     web:
