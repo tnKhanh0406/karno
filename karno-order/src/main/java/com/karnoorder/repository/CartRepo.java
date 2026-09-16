@@ -7,5 +7,5 @@ import java.util.UUID;
 
 @Mapper
 public interface CartRepo {
-    UUID findCartIdByUserId(@Param("userId") UUID userId);
+    String findCartIdByUserId(@Param("userId") UUID userId);
 }

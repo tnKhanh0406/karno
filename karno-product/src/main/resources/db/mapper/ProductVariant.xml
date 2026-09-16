@@ -4,7 +4,7 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.karnoproduct.repository.ProductVariantRepo">
-    <select id="getCartInfoByVariantIds" resultType="com.karnoproduct.repository.projection.ProductVariantProjection">
+    <select id="getCartInfoByVariantIds" resultType="com.karnoproduct.repository.projection.VariantCartProjection">
         SELECT
             pv.id,
             pv.name,

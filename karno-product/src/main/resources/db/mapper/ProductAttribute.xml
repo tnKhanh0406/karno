@@ -3,7 +3,7 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.karnoproduct.repository.ProductVariantRepo">
+<mapper namespace="com.karnoproduct.repository.ProductAttributeRepo">
     <select id="getAttributesByVariantIds" resultType="com.karnoproduct.repository.projection.VariantAttributeProjection">
         SELECT
             vav.variant_id,

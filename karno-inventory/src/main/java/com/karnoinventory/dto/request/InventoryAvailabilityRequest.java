@@ -4,6 +4,6 @@ import java.util.List;
 import java.util.UUID;
 
 public record InventoryAvailabilityRequest(
-        List<UUID> variantIds
+        List<UUID> UUIDs
 ) {
 }

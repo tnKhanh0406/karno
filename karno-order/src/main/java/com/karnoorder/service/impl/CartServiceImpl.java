@@ -30,7 +30,11 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartResponse getCart(UUID userId) {
-        UUID cartId = cartRepo.findCartIdByUserId(userId);
+        String cartIdStr = cartRepo.findCartIdByUserId(userId);
+        if (cartIdStr == null) {
+            return new CartResponse(null, 0, new ArrayList<>());
+        }
+        UUID cartId = UUID.fromString(cartRepo.findCartIdByUserId(userId));
 
         List<CartItemProjection> cartItems = cartItemRepo.getCartItemsByCartId(cartId);
 
