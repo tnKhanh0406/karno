@@ -27,4 +27,19 @@
         </foreach>
     </select>
 
+    <select id="getPurchasableInfo" resultType="com.karnoproduct.repository.projection.VariantPurchasableProjection">
+        SELECT
+            pv.id AS variant_id,
+            pv.primary_img,
+            pv.price,
+            p.id AS product_id,
+            p.name AS product_name,
+            p.thumbnail_img,
+            p.shop_id,
+            p.status AS product_status
+        FROM product_variants pv
+        JOIN products p ON p.id = pv.product_id
+        WHERE pv.id = #{variantId}
+    </select>
+
 </mapper>

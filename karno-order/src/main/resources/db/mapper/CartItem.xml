@@ -8,7 +8,7 @@
         SELECT COUNT(*) FROM cart_items WHERE cart_id = #{cartId}
     </select>
 
-    <select id="getCartItemsByCartId" resultType="com.karnoorder.repository.projection.CartItemProjection">
+    <select id="findByCartId" resultType="com.karnoorder.repository.projection.CartItemProjection">
         SELECT
             id,
             product_id,
@@ -18,4 +18,28 @@
         FROM cart_items
         WHERE cart_id = #{cartId}
     </select>
+
+    <select id="findByCartIdAndVariantId"
+            resultType="com.karnoorder.repository.projection.CartItemProjection">
+        SELECT
+            id,
+            product_id,
+            variant_id,
+            shop_id,
+            quantity
+        FROM cart_items
+        WHERE cart_id = #{cartId}
+        AND variant_id = #{variantId}
+    </select>
+
+    <insert id="insertCartItem">
+        INSERT INTO cart_items ( id, cart_id, product_id, variant_id, shop_id, quantity )
+        VALUES ( #{id}, #{cartId}, #{productId}, #{variantId}, #{shopId}, #{quantity} )
+    </insert>
+
+    <update id="updateQuantity">
+        UPDATE cart_items
+        SET quantity = #{quantity}
+        WHERE id = #{id}
+    </update>
 </mapper>

@@ -2,10 +2,13 @@ package com.karnoproduct.service.impl;
 
 import com.karnoproduct.dto.response.VariantAttributeResponse;
 import com.karnoproduct.dto.response.VariantCartResponse;
+import com.karnoproduct.dto.response.VariantPurchasableResponse;
+import com.karnoproduct.exception.NotFoundException;
 import com.karnoproduct.repository.ProductAttributeRepo;
 import com.karnoproduct.repository.ProductVariantRepo;
 import com.karnoproduct.repository.projection.VariantAttributeProjection;
 import com.karnoproduct.repository.projection.VariantCartProjection;
+import com.karnoproduct.repository.projection.VariantPurchasableProjection;
 import com.karnoproduct.service.ProductVariantService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -48,5 +51,24 @@ public class ProductVariantServiceImpl implements ProductVariantService {
                         variantAttributesMap.getOrDefault(variant.getId(), Collections.emptyList())
                 ))
                 .toList();
+    }
+
+    @Override
+    public VariantPurchasableResponse getVariantPurchasableInfo(UUID variantId) {
+        VariantPurchasableProjection variant = productVariantRepo.getPurchasableInfo(variantId);
+        if (variant == null) {
+            throw new NotFoundException("Variant not found");
+        }
+        boolean sellable = "ACTIVE".equalsIgnoreCase(variant.getProductStatus());
+        return new VariantPurchasableResponse(
+                variant.getVariantId(),
+                variant.getPrimaryImg(),
+                variant.getPrice(),
+                variant.getProductId(),
+                variant.getProductName(),
+                variant.getThumbnailImg(),
+                variant.getShopId(),
+                sellable
+        );
     }
 }
