@@ -11,22 +11,16 @@ spring:
           uri: http://karno-user-service:80
           predicates:
             - Path=/api/users/**
-          filters:
-            - RewritePath=/api/users/(?<segment>.*), /$\{segment}
 
         - id: karno-order-route
           uri: http://karno-order-service:80
           predicates:
             - Path=/api/orders/**
-          filters:
-            - RewritePath=/api/orders/(?<segment>.*), /$\{segment}
 
-        - id:  karno-product-route
+        - id: karno-product-route
           uri: http://karno-product-service:80
           predicates:
             - Path=/api/products/**
-          filters:
-            - RewritePath=/api/products/(?<segment>.*), /$\{segment}
 
 management:
   endpoints:
