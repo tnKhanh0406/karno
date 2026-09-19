@@ -5,14 +5,17 @@ import com.karnoorder.client.KarnoProductClient;
 import com.karnoorder.client.KarnoUserClient;
 import com.karnoorder.dto.request.AddToCartRequest;
 import com.karnoorder.dto.request.UUIDListRequest;
+import com.karnoorder.dto.request.UpdateCartRequest;
 import com.karnoorder.dto.response.*;
 import com.karnoorder.exception.BadRequestException;
+import com.karnoorder.exception.NotFoundException;
 import com.karnoorder.repository.CartItemRepo;
 import com.karnoorder.repository.CartRepo;
 import com.karnoorder.repository.projection.CartItemProjection;
 import com.karnoorder.service.CartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -101,6 +104,7 @@ public class CartServiceImpl implements CartService {
         );
     }
 
+    @Transactional
     @Override
     public AddToCartResponse addToCart(UUID userId, AddToCartRequest request) {
         UUID cartId = cartRepo.findCartIdByUserId(userId);
@@ -109,27 +113,12 @@ public class CartServiceImpl implements CartService {
             cartRepo.insertCart(cartId, userId);
         }
         VariantPurchasableResponse variant = karnoProductClient.getVariantPurchasableInfo(request.variantId());
-        if (!variant.isPurchasable()) {
-            throw new IllegalArgumentException("Variant is not purchasable");
-        }
         CartItemProjection existingItem = cartItemRepo.findByCartIdAndVariantId(cartId, request.variantId());
 
         int currentQuantity = existingItem != null ? existingItem.getQuantity() : 0;
         int newQuantity = currentQuantity + request.quantity();
 
-        int availableStock = karnoInventoryClient.getAvailabilityByVariantIds(new UUIDListRequest(List.of(request.variantId())))
-                .stream()
-                .findFirst()
-                .map(VariantInventoryResponse::availableQuantity)
-                .orElse(0);
-
-        if (availableStock <= 0) {
-            throw new BadRequestException("Product is out of stock");
-        }
-
-        if (newQuantity > availableStock) {
-            throw new BadRequestException("Requested quantity exceeds available stock");
-        }
+        checkStockAvailabilityAndPurchasable(variant, newQuantity);
 
         if (existingItem == null) {
             UUID cartItemId = UUID.randomUUID();
@@ -154,6 +143,60 @@ public class CartServiceImpl implements CartService {
                 variant.primaryImg(),
                 newQuantity
         );
+    }
+
+    @Transactional
+    @Override
+    public UpdateCartResponse updateCartItem(UUID userId, UUID cartItemId, UpdateCartRequest request) {
+        CartItemProjection cartItem = cartItemRepo.findByIdAndUserId(cartItemId, userId);
+        if (cartItem == null) {
+            throw new NotFoundException("Cart item not found");
+        }
+
+        UUID variantId = cartItem.getVariantId();
+        VariantPurchasableResponse variant = karnoProductClient.getVariantPurchasableInfo(variantId);
+
+        checkStockAvailabilityAndPurchasable(variant, request.quantity());
+
+        cartItemRepo.updateQuantity(cartItemId, request.quantity());
+        return new UpdateCartResponse(cartItemId, request.quantity());
+    }
+
+    @Transactional
+    @Override
+    public void removeFromCart(UUID userId, UUID cartItemId) {
+        int deleted = cartItemRepo.deleteByIdAndUserId(cartItemId, userId);
+        if (deleted == 0) {
+            throw new NotFoundException("Cart item not found");
+        }
+    }
+
+    @Transactional
+    @Override
+    public void removeCartItems(UUID userId, UUIDListRequest request) {
+        int deleted = cartItemRepo.deleteByIdsAndUserId(request.UUIDs(), userId);
+        if (deleted == 0 && !request.UUIDs().isEmpty()) {
+            throw new NotFoundException("No cart items found to delete");
+        }
+    }
+
+    private void checkStockAvailabilityAndPurchasable(VariantPurchasableResponse variant, int requestedQuantity) {
+        if (!variant.isPurchasable()) {
+            throw new IllegalArgumentException("Variant is not purchasable");
+        }
+        int availableStock = karnoInventoryClient.getAvailabilityByVariantIds(new UUIDListRequest(List.of(variant.variantId())))
+                .stream()
+                .findFirst()
+                .map(VariantInventoryResponse::availableQuantity)
+                .orElse(0);
+
+        if (availableStock <= 0) {
+            throw new BadRequestException("Product is out of stock");
+        }
+
+        if (requestedQuantity > availableStock) {
+            throw new BadRequestException("Requested quantity exceeds available stock");
+        }
     }
 
     private CartShopResponse buildCartShopResponse(UUID shopId,

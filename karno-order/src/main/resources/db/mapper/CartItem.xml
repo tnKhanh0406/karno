@@ -42,4 +42,41 @@
         SET quantity = #{quantity}
         WHERE id = #{id}
     </update>
+
+    <select id="findByIdAndUserId" resultType="com.karnoorder.repository.projection.CartItemProjection">
+        SELECT
+            ci.id,
+            ci.product_id,
+            ci.variant_id,
+            ci.shop_id,
+            ci.quantity
+        FROM cart_items ci
+        JOIN carts c ON c.id = ci.cart_id
+        WHERE ci.id = #{id}
+        AND c.customer_id = #{userId}
+    </select>
+
+    <delete id="deleteByIdAndUserId">
+        DELETE FROM cart_items ci
+        USING carts c
+        WHERE ci.cart_id = c.id
+        AND ci.id = #{id}
+        AND c.customer_id = #{userId}
+    </delete>
+
+    <delete id="deleteByIdsAndUserId">
+        DELETE FROM cart_items ci
+        USING carts c
+        WHERE ci.cart_id = c.id
+        AND c.customer_id = #{userId}
+        AND ci.id IN
+        <foreach
+            collection="ids"
+            item="id"
+            open="("
+            separator=","
+            close=")">
+            #{id}
+        </foreach>
+    </delete>
 </mapper>

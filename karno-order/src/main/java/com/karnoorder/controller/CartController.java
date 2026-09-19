@@ -1,10 +1,15 @@
 package com.karnoorder.controller;
 
 import com.karnoorder.dto.request.AddToCartRequest;
+import com.karnoorder.dto.request.UUIDListRequest;
+import com.karnoorder.dto.request.UpdateCartRequest;
 import com.karnoorder.dto.response.AddToCartResponse;
 import com.karnoorder.dto.response.CartResponse;
+import com.karnoorder.dto.response.UpdateCartResponse;
 import com.karnoorder.service.CartService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -21,8 +26,30 @@ public class CartController {
     }
 
     @PostMapping("/{userId}/items")
+    @ResponseStatus(HttpStatus.CREATED)
     public AddToCartResponse addToCart(@PathVariable("userId") UUID userId,
-                                       @RequestBody AddToCartRequest request) {
+                                       @Valid @RequestBody AddToCartRequest request) {
         return cartService.addToCart(userId, request);
+    }
+
+    @PutMapping("/{userId}/items/{cartItemId}")
+    public UpdateCartResponse updateCartItem(@PathVariable("userId") UUID userId,
+                                             @PathVariable("cartItemId") UUID cartItemId,
+                                             @Valid @RequestBody UpdateCartRequest request) {
+        return cartService.updateCartItem(userId, cartItemId, request);
+    }
+
+    @DeleteMapping("/{userId}/items/{cartItemId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeFromCart(@PathVariable("userId") UUID userId,
+                               @PathVariable("cartItemId") UUID cartItemId) {
+        cartService.removeFromCart(userId, cartItemId);
+    }
+
+    @DeleteMapping("/{userId}/items")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeCartItems(@PathVariable("userId") UUID userId,
+                                @RequestBody UUIDListRequest request) {
+        cartService.removeCartItems(userId, request);
     }
 }

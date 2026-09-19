@@ -25,4 +25,15 @@ public interface CartItemRepo {
     void updateQuantity(
             @Param("id") UUID id,
             @Param("quantity") Integer quantity);
+    CartItemProjection findByIdAndUserId(
+            @Param("id") UUID id,
+            @Param("userId") UUID userId);
+    int deleteByIdAndUserId(
+            @Param("id") UUID id,
+            @Param("userId") UUID userId
+    );
+    int deleteByIdsAndUserId(
+            @Param("ids") List<UUID> ids,
+            @Param("userId") UUID userId
+    );
 }
