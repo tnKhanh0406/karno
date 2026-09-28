@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.karnoorder.repository.CheckoutSagaRepo">
+
+    <insert id="insert">
+        INSERT INTO checkout_sagas (
+            id,
+            customer_id,
+            idempotency_key,
+            status,
+            context_payload,
+            version
+        )
+        VALUES (
+            #{id},
+            #{customerId},
+            #{idempotencyKey},
+            #{status},
+            CAST(#{contextPayload} AS JSONB),
+            #{version}
+        )
+    </insert>
+
+</mapper>

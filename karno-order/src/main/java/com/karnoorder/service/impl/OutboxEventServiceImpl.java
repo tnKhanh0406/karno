@@ -1,0 +1,74 @@
+package com.karnoorder.service.impl;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.karnoorder.entity.OutboxEvent;
+import com.karnoorder.enums.OutboxEventStatus;
+import com.karnoorder.exception.OutboxSerializationException;
+import com.karnoorder.repository.OutboxEventRepo;
+import com.karnoorder.service.OutboxEventService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+public class OutboxEventServiceImpl implements OutboxEventService {
+
+    private final OutboxEventRepo outboxEventRepo;
+    private final ObjectMapper objectMapper;
+
+    @Transactional
+    @Override
+    public UUID enqueueEvent(String aggregateType, UUID aggregateId, String eventType, String topic, Object payload) {
+        String jsonPayload;
+        try {
+            jsonPayload = objectMapper.writeValueAsString(payload);
+        } catch (JsonProcessingException ex) {
+            throw new OutboxSerializationException(
+                    "Failed to serialize outbox payload",
+                    ex
+            );
+        }
+        UUID eventId = UUID.randomUUID();
+        OutboxEvent outboxEvent = OutboxEvent.builder()
+                .id(eventId)
+                .aggregateType(aggregateType)
+                .aggregateId(aggregateId)
+                .eventType(eventType)
+                .topic(topic)
+                .payload(jsonPayload)
+                .status(OutboxEventStatus.NEW)
+                .retryCount(0)
+                .build();
+        int inserted = outboxEventRepo.insert(outboxEvent);
+        if (inserted != 1) {
+            throw new IllegalStateException("Failed to insert outbox event");
+        }
+        return eventId;
+    }
+
+    @Transactional
+    @Override
+    public void markPublished(UUID eventId) {
+        int updated = outboxEventRepo.markPublished(eventId, Instant.now());
+        if (updated != 1) {
+            throw new IllegalStateException("Failed to mark outbox event as published");
+        }
+    }
+
+    @Transactional
+    @Override
+    public void markRetry(UUID eventId, String error) {
+        outboxEventRepo.markRetry(eventId, error);
+    }
+
+    @Transactional
+    @Override
+    public void markFailed(UUID eventId, String error) {
+        outboxEventRepo.markFailed(eventId, error);
+    }
+}

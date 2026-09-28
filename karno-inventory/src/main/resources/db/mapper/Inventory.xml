@@ -22,4 +22,34 @@
             #{variantId}
         </foreach>
     </select>
+
+    <select id="findByVariantIdsForUpdate" resultType="com.karnoinventory.entity.Inventory">
+        SELECT
+            id,
+            shop_id,
+            variant_id,
+            on_hand_quantity,
+            reserved_quantity,
+            created_at,
+            updated_at
+        FROM inventories
+        WHERE variant_id IN
+        <foreach collection="variantIds"
+                 item="variantId"
+                 open="("
+                 separator=","
+                 close=")">
+            #{variantId}
+        </foreach>
+        ORDER BY variant_id
+        FOR UPDATE
+    </select>
+
+    <update id="increaseReserved">
+        UPDATE inventories
+        SET
+            reserved_quantity = reserved_quantity + #{quantity},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{inventoryId}
+    </update>
 </mapper>

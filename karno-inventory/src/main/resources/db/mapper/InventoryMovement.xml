@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.karnoinventory.repository.InventoryMovementRepo">
+    <insert id="insert">
+        INSERT INTO inventory_movements (
+            id,
+            inventory_id,
+            type,
+            quantity,
+            on_hand_before,
+            on_hand_after,
+            reserved_before,
+            reserved_after,
+            reference_type,
+            reference_id,
+            reason,
+            actor_type,
+            actor_id
+        )
+        VALUES (
+            #{id},
+            #{inventoryId},
+            #{type},
+            #{quantity},
+            #{onHandBefore},
+            #{onHandAfter},
+            #{reservedBefore},
+            #{reservedAfter},
+            #{referenceType},
+            #{referenceId},
+            #{reason},
+            #{actorType},
+            #{actorId}
+        )
+    </insert>
+</mapper>

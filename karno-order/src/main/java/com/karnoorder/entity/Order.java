@@ -19,6 +19,7 @@ import java.util.UUID;
 public class Order {
     private UUID id;
     private UUID customerId;
+    private UUID checkoutId;
     private String receiverName;
     private String receiverAddress;
     private String receiverPhone;

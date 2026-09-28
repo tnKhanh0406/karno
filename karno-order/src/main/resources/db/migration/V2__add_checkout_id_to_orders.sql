@@ -1,0 +1,2 @@
+ALTER TABLE orders
+ADD COLUMN checkout_id UUID NOT NULL;

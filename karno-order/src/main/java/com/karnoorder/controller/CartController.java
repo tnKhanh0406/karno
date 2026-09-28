@@ -7,6 +7,7 @@ import com.karnoorder.dto.response.AddToCartResponse;
 import com.karnoorder.dto.response.CartResponse;
 import com.karnoorder.dto.response.UpdateCartResponse;
 import com.karnoorder.service.CartService;
+import com.karnoorder.service.CheckoutSagaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import java.util.UUID;
 @RequestMapping("/api/carts")
 public class CartController {
     private final CartService cartService;
+    private final CheckoutSagaService checkoutSagaService;
 
     @GetMapping("/{userId}")
     public CartResponse getCart(@PathVariable("userId") UUID userId) {
@@ -51,5 +53,20 @@ public class CartController {
     public void removeCartItems(@PathVariable("userId") UUID userId,
                                 @RequestBody UUIDListRequest request) {
         cartService.removeCartItems(userId, request);
+    }
+
+    @PostMapping("/test-reservation")
+    public UUID testReservation(
+            @RequestParam UUID customerId,
+            @RequestParam UUID variantId,
+            @RequestParam Integer quantity,
+            @RequestParam String idempotencyKey
+    ) {
+        return checkoutSagaService.startTestSaga(
+                customerId,
+                variantId,
+                quantity,
+                idempotencyKey
+        );
     }
 }
