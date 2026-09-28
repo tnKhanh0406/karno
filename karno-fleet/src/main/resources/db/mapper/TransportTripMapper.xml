@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.karnofleet.repository.TransportTripRepo">
+
+    <resultMap id="TransportTripResultMap" type="com.karnofleet.entity.TransportTrip">
+        <id property="id" column="id" />
+        <result property="tripCode" column="trip_code" />
+        <result property="scheduleId" column="schedule_id" />
+        <result property="fromHubId" column="from_hub_id" />
+        <result property="toHubId" column="to_hub_id" />
+        <result property="vehicleId" column="vehicle_id" />
+        <result property="scheduledDepartureAt" column="scheduled_departure_at" />
+        <result property="plannedArrivalAt" column="planned_arrival_at" />
+        <result property="estimatedArrivalAt" column="estimated_arrival_at" />
+        <result property="actualDepartureAt" column="actual_departure_at" />
+        <result property="actualArrivalAt" column="actual_arrival_at" />
+        <result property="capacityWeight" column="capacity_weight" />
+        <result property="reservedWeight" column="reserved_weight" />
+        <result property="status" column="status" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+    </resultMap>
+
+    <insert id="insert">
+        INSERT INTO transport_trip (
+            id, trip_code, schedule_id, from_hub_id, to_hub_id, vehicle_id,
+            scheduled_departure_at, planned_arrival_at, estimated_arrival_at,
+            actual_departure_at, actual_arrival_at, capacity_weight, reserved_weight,
+            status, created_at, updated_at
+        ) VALUES (
+            #{id}, #{tripCode}, #{scheduleId}, #{fromHubId}, #{toHubId}, #{vehicleId},
+            #{scheduledDepartureAt}, #{plannedArrivalAt}, #{estimatedArrivalAt},
+            #{actualDepartureAt}, #{actualArrivalAt}, #{capacityWeight}, #{reservedWeight},
+            #{status}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <insert id="insertIgnore">
+        INSERT INTO transport_trip (
+            id, trip_code, schedule_id, from_hub_id, to_hub_id, vehicle_id,
+            scheduled_departure_at, planned_arrival_at, estimated_arrival_at,
+            actual_departure_at, actual_arrival_at, capacity_weight, reserved_weight,
+            status, created_at, updated_at
+        ) VALUES (
+            #{id}, #{tripCode}, #{scheduleId}, #{fromHubId}, #{toHubId}, #{vehicleId},
+            #{scheduledDepartureAt}, #{plannedArrivalAt}, #{estimatedArrivalAt},
+            #{actualDepartureAt}, #{actualArrivalAt}, #{capacityWeight}, #{reservedWeight},
+            #{status}, #{createdAt}, #{updatedAt}
+        )
+        ON CONFLICT (schedule_id, scheduled_departure_at) DO NOTHING
+    </insert>
+
+    <select id="findById" resultMap="TransportTripResultMap">
+        SELECT id, trip_code, schedule_id, from_hub_id, to_hub_id, vehicle_id,
+               scheduled_departure_at, planned_arrival_at, estimated_arrival_at,
+               actual_departure_at, actual_arrival_at, capacity_weight, reserved_weight,
+               status, created_at, updated_at
+        FROM transport_trip
+        WHERE id = #{id}
+    </select>
+
+    <select id="findByTripCode" resultMap="TransportTripResultMap">
+        SELECT id, trip_code, schedule_id, from_hub_id, to_hub_id, vehicle_id,
+               scheduled_departure_at, planned_arrival_at, estimated_arrival_at,
+               actual_departure_at, actual_arrival_at, capacity_weight, reserved_weight,
+               status, created_at, updated_at
+        FROM transport_trip
+        WHERE trip_code = #{tripCode}
+    </select>
+
+    <select id="findByScheduleIdAndDeparture" resultMap="TransportTripResultMap">
+        SELECT id, trip_code, schedule_id, from_hub_id, to_hub_id, vehicle_id,
+               scheduled_departure_at, planned_arrival_at, estimated_arrival_at,
+               actual_departure_at, actual_arrival_at, capacity_weight, reserved_weight,
+               status, created_at, updated_at
+        FROM transport_trip
+        WHERE schedule_id = #{scheduleId} AND scheduled_departure_at = #{scheduledDepartureAt}
+    </select>
+
+    <select id="existsByScheduleIdAndDeparture" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1 FROM transport_trip
+            WHERE schedule_id = #{scheduleId} AND scheduled_departure_at = #{scheduledDepartureAt}
+        )
+    </select>
+
+    <select id="findTrips" resultMap="TransportTripResultMap">
+        SELECT id, trip_code, schedule_id, from_hub_id, to_hub_id, vehicle_id,
+               scheduled_departure_at, planned_arrival_at, estimated_arrival_at,
+               actual_departure_at, actual_arrival_at, capacity_weight, reserved_weight,
+               status, created_at, updated_at
+        FROM transport_trip
+        WHERE 1 = 1
+        <if test="fromHubId != null">
+            AND from_hub_id = #{fromHubId}
+        </if>
+        <if test="toHubId != null">
+            AND to_hub_id = #{toHubId}
+        </if>
+        <if test="departureFrom != null">
+            AND scheduled_departure_at &gt;= #{departureFrom}
+        </if>
+        <if test="departureTo != null">
+            AND scheduled_departure_at &lt;= #{departureTo}
+        </if>
+        ORDER BY scheduled_departure_at ASC
+    </select>
+
+    <select id="findByStatus" resultMap="TransportTripResultMap">
+        SELECT id, trip_code, schedule_id, from_hub_id, to_hub_id, vehicle_id,
+               scheduled_departure_at, planned_arrival_at, estimated_arrival_at,
+               actual_departure_at, actual_arrival_at, capacity_weight, reserved_weight,
+               status, created_at, updated_at
+        FROM transport_trip
+        WHERE status = #{status}
+        ORDER BY scheduled_departure_at ASC
+    </select>
+
+</mapper>

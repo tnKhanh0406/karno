@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.karnohub.repository.HubConnectionRepo">
+
+    <resultMap id="HubConnectionResultMap" type="com.karnohub.entity.HubConnection">
+        <id property="id" column="id" />
+        <result property="fromHubId" column="from_hub_id" />
+        <result property="toHubId" column="to_hub_id" />
+        <result property="status" column="status" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+    </resultMap>
+
+    <insert id="insert">
+        INSERT INTO hub_connection (id, from_hub_id, to_hub_id, status, created_at, updated_at)
+        VALUES (#{id}, #{fromHubId}, #{toHubId}, #{status}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <select id="findById" resultMap="HubConnectionResultMap">
+        SELECT id, from_hub_id, to_hub_id, status, created_at, updated_at
+        FROM hub_connection
+        WHERE id = #{id}
+    </select>
+
+    <select id="findByFromHubId" resultMap="HubConnectionResultMap">
+        SELECT id, from_hub_id, to_hub_id, status, created_at, updated_at
+        FROM hub_connection
+        WHERE from_hub_id = #{fromHubId}
+    </select>
+
+    <select id="findAll" resultMap="HubConnectionResultMap">
+        SELECT id, from_hub_id, to_hub_id, status, created_at, updated_at
+        FROM hub_connection
+    </select>
+
+    <select id="findByStatus" resultMap="HubConnectionResultMap">
+        SELECT id, from_hub_id, to_hub_id, status, created_at, updated_at
+        FROM hub_connection
+        WHERE status = #{status}
+    </select>
+
+</mapper>

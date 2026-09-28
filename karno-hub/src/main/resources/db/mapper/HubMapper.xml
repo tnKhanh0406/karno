@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.karnohub.repository.HubRepo">
+
+    <resultMap id="HubResultMap" type="com.karnohub.entity.Hub">
+        <id property="id" column="id" />
+        <result property="hubCode" column="hub_code" />
+        <result property="name" column="name" />
+        <result property="minTransferMinutes" column="min_transfer_minutes" />
+        <result property="status" column="status" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+    </resultMap>
+
+    <insert id="insert">
+        INSERT INTO hub (id, hub_code, name, min_transfer_minutes, status, created_at, updated_at)
+        VALUES (#{id}, #{hubCode}, #{name}, #{minTransferMinutes}, #{status}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <select id="findById" resultMap="HubResultMap">
+        SELECT id, hub_code, name, min_transfer_minutes, status, created_at, updated_at
+        FROM hub
+        WHERE id = #{id}
+    </select>
+
+    <select id="findByHubCode" resultMap="HubResultMap">
+        SELECT id, hub_code, name, min_transfer_minutes, status, created_at, updated_at
+        FROM hub
+        WHERE hub_code = #{hubCode}
+    </select>
+
+    <select id="findAll" resultMap="HubResultMap">
+        SELECT id, hub_code, name, min_transfer_minutes, status, created_at, updated_at
+        FROM hub
+        ORDER BY hub_code ASC
+    </select>
+
+    <select id="findByStatus" resultMap="HubResultMap">
+        SELECT id, hub_code, name, min_transfer_minutes, status, created_at, updated_at
+        FROM hub
+        WHERE status = #{status}
+        ORDER BY hub_code ASC
+    </select>
+
+</mapper>
