@@ -1,0 +1,9 @@
+package com.karnofleet.enums;
+
+public enum RouteViolation {
+    CAPACITY_WEIGHT_EXCEEDED,
+    CAPACITY_VOLUME_EXCEEDED,
+    PICKUP_WINDOW_VIOLATION,
+    SHIFT_END_EXCEEDED,
+    TRAVEL_TIME_UNAVAILABLE
+}

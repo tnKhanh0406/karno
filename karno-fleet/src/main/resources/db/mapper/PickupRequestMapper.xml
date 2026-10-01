@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.karnofleet.repository.PickupRequestRepo">
+
+    <resultMap id="PickupRequestResultMap" type="com.karnofleet.entity.PickupRequest">
+        <id property="id" column="id"/>
+        <result property="requestCode" column="request_code"/>
+        <result property="shopName" column="shop_name"/>
+        <result property="pickupAddress" column="pickup_address"/>
+        <result property="pickupLatitude" column="pickup_latitude"/>
+        <result property="pickupLongitude" column="pickup_longitude"/>
+        <result property="targetHubId" column="target_hub_id"/>
+        <result property="totalWeight" column="total_weight"/>
+        <result property="totalVolume" column="total_volume"/>
+        <result property="serviceDurationSeconds" column="service_duration_seconds"/>
+        <result property="pickupWindowStart" column="pickup_window_start"/>
+        <result property="pickupWindowEnd" column="pickup_window_end"/>
+        <result property="status" column="status" javaType="com.karnofleet.enums.PickupRequestStatus"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="findPlanningCandidates" resultMap="PickupRequestResultMap">
+        SELECT
+            id,
+            request_code,
+            shop_name,
+            pickup_address,
+            pickup_latitude,
+            pickup_longitude,
+            target_hub_id,
+            total_weight,
+            total_volume,
+            service_duration_seconds,
+            pickup_window_start,
+            pickup_window_end,
+            status,
+            created_at,
+            updated_at
+        FROM pickup_request
+        WHERE target_hub_id = #{hubId} AND status = #{status}
+    </select>
+
+</mapper>

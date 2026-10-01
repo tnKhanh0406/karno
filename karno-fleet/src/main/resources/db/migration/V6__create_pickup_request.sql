@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS pickup_request (
+    id UUID PRIMARY KEY,
+    request_code VARCHAR(50) NOT NULL UNIQUE,
+    shop_name VARCHAR(255) NOT NULL,
+    pickup_address VARCHAR(500),
+    pickup_latitude DECIMAL(9,6) NOT NULL,
+    pickup_longitude DECIMAL(10,6) NOT NULL,
+    target_hub_id UUID NOT NULL,
+    total_weight DECIMAL(12,2) NOT NULL,
+    total_volume DECIMAL(12,2) NOT NULL,
+    service_duration_seconds INT NOT NULL DEFAULT 300,
+    pickup_window_start TIME NOT NULL,
+    pickup_window_end TIME NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'WAITING_PLANNING',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CHECK (total_weight > 0),
+    CHECK (total_volume > 0),
+    CHECK (service_duration_seconds >= 0),
+    CHECK (pickup_window_start < pickup_window_end)
+);
