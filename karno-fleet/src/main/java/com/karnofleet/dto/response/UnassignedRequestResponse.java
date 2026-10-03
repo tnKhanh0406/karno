@@ -1,5 +1,6 @@
 package com.karnofleet.dto.response;
 
+import com.karnofleet.dto.request.GeoPoint;
 import com.karnofleet.enums.UnassignedReason;
 import lombok.Builder;
 
@@ -9,6 +10,7 @@ import java.util.UUID;
 public record UnassignedRequestResponse(
         UUID requestId,
         String requestCode,
-        UnassignedReason reason
+        UnassignedReason reason,
+        GeoPoint location
 ) {
 }

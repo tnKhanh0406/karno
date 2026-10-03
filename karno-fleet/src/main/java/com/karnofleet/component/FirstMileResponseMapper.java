@@ -18,6 +18,7 @@ public class FirstMileResponseMapper {
                 )
                 .unassigned(result.unassigned())
                 .geometry(toGeometry(result.geometry()))
+                .hub(result.hub())
                 .build();
     }
 
@@ -58,6 +59,7 @@ public class FirstMileResponseMapper {
 
         return new RouteGeometry(
                 geometry.encodedPolyline(),
+                geometry.polylineFormat(),
                 geometry.distanceMeters(),
                 geometry.travelDuration().toSeconds()
         );

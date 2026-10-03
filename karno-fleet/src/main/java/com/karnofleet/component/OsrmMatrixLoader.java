@@ -7,6 +7,7 @@ import com.karnofleet.dto.response.OsrmTableResponse;
 import com.karnofleet.exception.RoutingProviderException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -20,6 +21,10 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@ConditionalOnProperty(
+        name = "routing.matrix.provider",
+        havingValue = "osrm"
+)
 public class OsrmMatrixLoader implements TravelTimeMatrixLoader{
     private final WebClient osrmWebClient;
     private final OsrmProperties properties;

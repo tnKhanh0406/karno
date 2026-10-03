@@ -96,13 +96,15 @@ public class FirstMilePlanningServiceImpl implements FirstMilePlanningService {
                                 .stream()
                                 .map(PickupStopInput::location)
                                 .toList(),
-                        hub
+                        hub,
+                        plannedAt
         );
         return mapper.toResponse(PlanningResult.builder()
                 .selectedStops(result.selectedStops())
                 .unassigned(result.unassigned())
                 .routeEvaluation(result.routeEvaluation())
                 .geometry(geometry)
+                .hub(hub)
                 .build());
     }
 

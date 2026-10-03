@@ -44,6 +44,7 @@ public class CheapestFeasibleInsertionPlanner {
                                 .requestId(pickupRequest.requestId())
                                 .requestCode(pickupRequest.requestCode())
                                 .reason(UnassignedReason.REQUEST_EXCEEDS_CAPACITY)
+                                .location(pickupRequest.location())
                                 .build()
                 );
                 continue;
@@ -66,6 +67,7 @@ public class CheapestFeasibleInsertionPlanner {
                                 .requestId(pickupRequest.requestId())
                                 .requestCode(pickupRequest.requestCode())
                                 .reason(UnassignedReason.NO_FEASIBLE_INSERTION)
+                                .location(pickupRequest.location())
                                 .build()
                 );
             }
@@ -85,6 +87,7 @@ public class CheapestFeasibleInsertionPlanner {
                 .selectedStops(List.copyOf(currentRoute))
                 .unassigned(List.copyOf(unassigned))
                 .routeEvaluation(finalEvaluation)
+                .hub(request.hubLocation())
                 .build();
     }
 
