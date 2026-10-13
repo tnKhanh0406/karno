@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.karnoorder.repository.OrderItemRepo">
+    <insert id="insert">
+        INSERT INTO order_items (
+            id,
+            order_id,
+            product_id,
+            variant_id,
+            product_name,
+            variant_name,
+            sku,
+            product_image_url,
+            unit_price,
+            quantity,
+            subtotal,
+            weight_gram,
+            length_cm,
+            width_cm,
+            height_cm
+        )
+        VALUES (
+            #{i.id},
+            #{i.orderId},
+            #{i.productId},
+            #{i.variantId},
+            #{i.productName},
+            #{i.variantName},
+            #{i.sku},
+            #{i.productImageUrl},
+            #{i.unitPrice},
+            #{i.quantity},
+            #{i.subtotal},
+            #{i.weightGram},
+            #{i.lengthCm},
+            #{i.widthCm},
+            #{i.heightCm}
+        )
+    </insert>
+</mapper>

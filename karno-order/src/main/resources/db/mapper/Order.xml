@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.karnoorder.repository.OrderRepo">
+    <insert id="insert">
+        INSERT INTO orders (
+            id,
+            checkout_id,
+            customer_id,
+            receiver_name,
+            receiver_phone,
+            receiver_address,
+            shop_id,
+            shop_name,
+            status,
+            subtotal,
+            shipping_fee,
+            total_amount,
+            shipping_method,
+            payment_method,
+            payment_status,
+            delivery_slot_start,
+            delivery_slot_end,
+            note
+        )
+        VALUES (
+            #{o.id},
+            #{o.checkoutId},
+            #{o.customerId},
+            #{o.receiverName},
+            #{o.receiverPhone},
+            #{o.receiverAddress},
+            #{o.shopId},
+            #{o.shopName},
+            #{o.status},
+            #{o.subtotal},
+            #{o.shippingFee},
+            #{o.totalAmount},
+            #{o.shippingMethod},
+            #{o.paymentMethod},
+            #{o.paymentStatus},
+            #{o.deliverySlotStart},
+            #{o.deliverySlotEnd},
+            #{o.note}
+        )
+
+    </insert>
+
+    <select id="countByCheckoutId" resultType="int">
+        SELECT COUNT(*)
+        FROM orders
+        WHERE checkout_id = #{checkoutId}
+    </select>
+</mapper>

@@ -2,6 +2,7 @@ package com.karnoproduct.service.impl;
 
 import com.karnoproduct.dto.response.VariantAttributeResponse;
 import com.karnoproduct.dto.response.VariantCartResponse;
+import com.karnoproduct.dto.response.VariantCheckoutInfo;
 import com.karnoproduct.dto.response.VariantPurchasableResponse;
 import com.karnoproduct.exception.NotFoundException;
 import com.karnoproduct.repository.ProductAttributeRepo;
@@ -70,5 +71,10 @@ public class ProductVariantServiceImpl implements ProductVariantService {
                 variant.getShopId(),
                 sellable
         );
+    }
+
+    @Override
+    public List<VariantCheckoutInfo> getVariantCheckoutInfo(List<UUID> variantIds) {
+        return productVariantRepo.getCheckoutInfoByVariantIds(variantIds);
     }
 }

@@ -42,4 +42,34 @@
         WHERE pv.id = #{variantId}
     </select>
 
+    <select id="getCheckoutInfoByVariantIds" resultType="com.karnoproduct.dto.response.VariantCheckoutInfo">
+        SELECT
+            pv.id AS variant_id,
+            p.id AS product_id,
+            p.shop_id,
+            p.name AS product_name,
+            pv.name AS variant_name,
+            pv.sku,
+            pv.primary_img AS primaryImageUrl,
+            pv.price,
+            pv.weight_gram,
+            pv.length_cm,
+            pv.width_cm,
+            pv.height_cm,
+            CASE p.status
+                WHEN 'ACTIVE' THEN TRUE
+                ELSE FALSE
+            END AS sellable
+        FROM product_variants pv
+        JOIN products p ON p.id = pv.product_id
+        WHERE pv.id IN
+        <foreach collection="variantIds"
+                 item="variantId"
+                 open="("
+                 separator=","
+                 close=")">
+            #{variantId}
+        </foreach>
+    </select>
+
 </mapper>

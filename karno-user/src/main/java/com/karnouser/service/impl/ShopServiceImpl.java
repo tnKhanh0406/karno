@@ -1,6 +1,7 @@
 package com.karnouser.service.impl;
 
 import com.karnouser.dto.response.ShopInformationResponse;
+import com.karnouser.dto.response.ShopLocationResponse;
 import com.karnouser.exception.NotFoundException;
 import com.karnouser.repository.ShopRepo;
 import com.karnouser.service.ShopService;
@@ -8,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -30,5 +32,13 @@ public class ShopServiceImpl implements ShopService {
             return List.of();
         }
         return shopRepo.findShopInformationByIds(shopIds);
+    }
+
+    @Override
+    public List<ShopLocationResponse> getPickupLocations(Set<UUID> shopIds) {
+        if (shopIds == null || shopIds.isEmpty()) {
+            return List.of();
+        }
+        return shopRepo.findShopLocationsByIds(shopIds);
     }
 }

@@ -79,4 +79,35 @@
             #{id}
         </foreach>
     </delete>
+
+    <select id="findSelectedByCustomer" resultType="com.karnoorder.entity.CartItem">
+        SELECT
+            ci.id,
+            ci.cart_id,
+            ci.product_id,
+            ci.variant_id,
+            ci.shop_id,
+            ci.quantity
+        FROM cart_items ci
+        JOIN carts c ON c.id = ci.cart_id
+        WHERE c.customer_id = #{customerId}
+        AND ci.id IN
+        <foreach collection="cartItemIds"
+                 item="cartItemId"
+                 open="("
+                 separator=","
+                 close=")">
+            #{cartItemId}
+        </foreach>
+    </select>
+
+    <delete id="deleteIfUnchanged">
+        DELETE FROM cart_items ci
+        USING carts c
+        WHERE ci.cart_id = c.id
+        AND c.customer_id = #{customerId}
+        AND ci.id = #{cartItemId}
+        AND ci.variant_id = #{variantId}
+        AND ci.quantity = #{quantity}
+    </delete>
 </mapper>

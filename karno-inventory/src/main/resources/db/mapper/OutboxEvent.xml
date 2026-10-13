@@ -46,4 +46,52 @@
         WHERE id = #{id}
     </select>
 
+    <select id="findPending" resultType="com.karnoinventory.entity.OutboxEvent">
+        SELECT
+            id,
+            aggregate_type,
+            aggregate_id,
+            event_type,
+            topic,
+            payload::TEXT AS payload,
+            status,
+            retry_count,
+            created_at,
+            published_at,
+            updated_at
+        FROM outbox_events
+        WHERE status = 'NEW'
+        ORDER BY created_at ASC
+        LIMIT #{limit}
+    </select>
+
+    <update id="markPublished">
+        UPDATE outbox_events
+        SET
+            status = 'PUBLISHED',
+            published_at = #{publishedAt},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+        AND status = 'NEW'
+    </update>
+
+    <update id="markRetry">
+        UPDATE outbox_events
+        SET
+            retry_count = retry_count + 1,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+        AND status = 'NEW'
+    </update>
+
+    <update id="markFailed">
+        UPDATE outbox_events
+        SET
+            status = 'FAILED',
+            retry_count = retry_count + 1,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+        AND status = 'NEW'
+    </update>
+
 </mapper>

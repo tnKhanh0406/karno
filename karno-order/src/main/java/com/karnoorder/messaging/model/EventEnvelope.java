@@ -1,4 +1,4 @@
-package com.karnoorder.dto;
+package com.karnoorder.messaging.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
 

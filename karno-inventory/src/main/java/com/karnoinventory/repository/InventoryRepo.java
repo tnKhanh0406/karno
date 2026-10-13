@@ -17,5 +17,11 @@ public interface InventoryRepo {
             @Param("inventoryId") UUID inventoryId,
             @Param("quantity") int quantity
     );
-
+    int confirmReservedStock(
+            @Param("inventoryId") UUID inventoryId,
+            @Param("quantity") Integer quantity
+    );
+    Inventory findByIdForUpdate(
+            @Param("inventoryId") UUID inventoryId
+    );
 }

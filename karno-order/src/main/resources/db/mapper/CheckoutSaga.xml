@@ -25,4 +25,143 @@
         )
     </insert>
 
+    <insert id="insertIfAbsent">
+        INSERT INTO checkout_sagas (
+            id,
+            customer_id,
+            idempotency_key,
+            request_hash,
+            status,
+            context_payload,
+            version
+        )
+        VALUES (
+            #{id},
+            #{customerId},
+            #{idempotencyKey},
+            #{requestHash},
+            #{status},
+            CAST(#{contextPayload} AS JSONB),
+            0
+        )
+        ON CONFLICT ( customer_id, idempotency_key ) DO NOTHING
+    </insert>
+
+
+
+    <select id="findByCustomerAndKey" resultType="com.karnoorder.entity.CheckoutSaga">
+        SELECT
+            id,
+            customer_id,
+            idempotency_key,
+            request_hash,
+            status,
+            context_payload::TEXT AS context_payload,
+            result_payload::TEXT AS result_payload,
+            failure_code,
+            failure_message,
+            version,
+            created_at,
+            updated_at,
+            completed_at
+        FROM checkout_sagas
+        WHERE customer_id = #{customerId}
+        AND idempotency_key = #{idempotencyKey}
+    </select>
+
+    <select id="findByIdAndCustomer" resultType="com.karnoorder.entity.CheckoutSaga">
+        SELECT
+            id,
+            customer_id,
+            idempotency_key,
+            request_hash,
+            status,
+            context_payload::TEXT AS context_payload,
+            result_payload::TEXT AS result_payload,
+            failure_code,
+            failure_message,
+            version,
+            created_at,
+            updated_at,
+            completed_at
+        FROM checkout_sagas
+        WHERE id = #{checkoutId}
+        AND customer_id = #{customerId}
+    </select>
+
+    <select id="findByIdForUpdate" resultType="com.karnoorder.entity.CheckoutSaga">
+        SELECT
+            id,
+            customer_id,
+            idempotency_key,
+            request_hash,
+            status,
+            context_payload::text AS context_payload,
+            result_payload::text AS result_payload,
+            failure_code,
+            failure_message,
+            version,
+            created_at,
+            updated_at,
+            completed_at
+        FROM checkout_sagas
+        WHERE id = #{checkoutId}
+        FOR UPDATE
+    </select>
+
+    <update id="markOrderCommitted">
+        UPDATE checkout_sagas
+        SET
+            status = 'ORDER_COMMITTED',
+            version = version + 1,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{checkoutId} AND status = 'PROCESSING'
+    </update>
+
+    <update id="markFailed">
+        UPDATE checkout_sagas
+        SET
+            status = 'FAILED',
+            failure_code = #{failureCode},
+            failure_message = #{failureMessage},
+            version = version + 1,
+            updated_at = CURRENT_TIMESTAMP,
+            completed_at = CURRENT_TIMESTAMP
+        WHERE id = #{checkoutId}
+        AND status = 'PROCESSING'
+    </update>
+
+    <update id="markCompensating">
+        UPDATE checkout_sagas
+        SET
+            status = 'COMPENSATING',
+            failure_code = #{failureCode},
+            failure_message = #{failureMessage},
+            version = version + 1,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{checkoutId}
+        AND status = 'PROCESSING'
+    </update>
+
+    <update id="markFailedAfterRelease">
+        UPDATE checkout_sagas
+        SET
+            status = 'FAILED',
+            version = version + 1,
+            updated_at = CURRENT_TIMESTAMP,
+            completed_at = CURRENT_TIMESTAMP
+        WHERE id = #{checkoutId}
+        AND status = 'COMPENSATING'
+    </update>
+
+    <update id="markCompleted">
+        UPDATE checkout_sagas
+        SET
+            status = 'COMPLETED',
+            version = version + 1,
+            updated_at = CURRENT_TIMESTAMP,
+            completed_at = CURRENT_TIMESTAMP
+        WHERE id = #{checkoutId}
+        AND status = 'ORDER_COMMITTED'
+    </update>
 </mapper>

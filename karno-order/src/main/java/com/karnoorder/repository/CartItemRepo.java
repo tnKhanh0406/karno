@@ -1,9 +1,11 @@
 package com.karnoorder.repository;
 
+import com.karnoorder.entity.CartItem;
 import com.karnoorder.repository.projection.CartItemProjection;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,5 +37,15 @@ public interface CartItemRepo {
     int deleteByIdsAndUserId(
             @Param("ids") List<UUID> ids,
             @Param("userId") UUID userId
+    );
+    List<CartItem> findSelectedByCustomer(
+            @Param("customerId") UUID customerId,
+            @Param("cartItemIds") Collection<UUID> cartItemIds
+    );
+    int deleteIfUnchanged(
+            @Param("customerId") UUID customerId,
+            @Param("cartItemId") UUID cartItemId,
+            @Param("variantId") UUID variantId,
+            @Param("quantity") Integer quantity
     );
 }

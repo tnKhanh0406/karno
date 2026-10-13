@@ -1,4 +1,4 @@
-package com.karnoinventory.handler;
+package com.karnoinventory.messaging.handler;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,7 +44,7 @@ public class InventoryReservationRequestedHandler {
     private final InventoryReservationRepo reservationRepo;
     private final InventoryMovementRepo movementRepo;
     private final OutboxService outboxService;
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
     @Transactional
     public void handle(EventEnvelope event) {

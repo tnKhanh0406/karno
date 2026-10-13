@@ -29,6 +29,7 @@ public class Order {
     private BigDecimal subtotal;
     private BigDecimal shippingFee;
     private BigDecimal totalAmount;
+    private String shippingMethod;
     private PaymentMethod paymentMethod;
     private PaymentStatus paymentStatus;
     private OffsetDateTime deliverySlotStart;

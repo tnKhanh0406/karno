@@ -52,4 +52,22 @@
             updated_at = CURRENT_TIMESTAMP
         WHERE id = #{inventoryId}
     </update>
+
+    <update id="confirmReservedStock">
+        UPDATE inventories
+        SET
+            on_hand_quantity = on_hand_quantity - #{quantity},
+            reserved_quantity = reserved_quantity - #{quantity},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{inventoryId}
+        AND on_hand_quantity >= #{quantity}
+        AND reserved_quantity >= #{quantity}
+    </update>
+
+    <select id="findByIdForUpdate" resultType="com.karnoinventory.entity.Inventory">
+        SELECT *
+        FROM inventories
+        WHERE id = #{inventoryId}
+        FOR UPDATE
+    </select>
 </mapper>

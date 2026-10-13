@@ -2,6 +2,7 @@ package com.karnoproduct.controller.internal;
 
 import com.karnoproduct.dto.request.UUIDListRequest;
 import com.karnoproduct.dto.response.VariantCartResponse;
+import com.karnoproduct.dto.response.VariantCheckoutInfo;
 import com.karnoproduct.dto.response.VariantPurchasableResponse;
 import com.karnoproduct.service.ProductVariantService;
 import lombok.RequiredArgsConstructor;
@@ -24,5 +25,10 @@ public class ProductVariantInternalController {
     @GetMapping("/{variantId}/purchasable-info")
     public VariantPurchasableResponse getVariantPurchasableInfo(@PathVariable UUID variantId) {
         return productVariantService.getVariantPurchasableInfo(variantId);
+    }
+
+    @PostMapping("/checkout-info")
+    public List<VariantCheckoutInfo> getVariantCheckoutInfo(@RequestBody UUIDListRequest request) {
+        return productVariantService.getVariantCheckoutInfo(request.UUIDs());
     }
 }

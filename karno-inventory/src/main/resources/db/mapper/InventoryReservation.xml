@@ -27,4 +27,26 @@
             #{expiresAt}
         )
     </insert>
+
+    <select id="findByCheckoutIdForUpdate" resultType="com.karnoinventory.entity.InventoryReservation">
+        SELECT
+            id,
+            checkout_id,
+            inventory_id,
+            order_id,
+            order_item_id,
+            quantity,
+            status
+        FROM inventory_reservations
+        WHERE checkout_id = #{checkoutId}
+        ORDER BY inventory_id, id
+        FOR UPDATE
+    </select>
+
+    <update id="markConfirmed">
+        UPDATE inventory_reservations
+        SET status = 'CONFIRMED'
+        WHERE id = #{reservationId}
+        AND status = 'ACTIVE'
+    </update>
 </mapper>

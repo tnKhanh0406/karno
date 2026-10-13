@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Service
@@ -47,5 +48,26 @@ public class OutboxServiceImpl implements OutboxService {
             throw new IllegalStateException("Failed to insert outbox event");
         }
         return eventId;
+    }
+
+    @Transactional
+    @Override
+    public void markPublished(UUID eventId) {
+        int updated = outboxEventRepo.markPublished(eventId, Instant.now());
+        if (updated != 1) {
+            throw new IllegalStateException("Failed to mark outbox event as published");
+        }
+    }
+
+    @Transactional
+    @Override
+    public void markRetry(UUID eventId, String error) {
+        outboxEventRepo.markRetry(eventId, error);
+    }
+
+    @Transactional
+    @Override
+    public void markFailed(UUID eventId, String error) {
+        outboxEventRepo.markFailed(eventId, error);
     }
 }

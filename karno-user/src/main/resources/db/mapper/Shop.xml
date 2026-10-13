@@ -32,4 +32,24 @@
         </foreach>
         AND status = 'ACTIVE'
     </select>
+
+    <select id="findShopLocationsByIds" resultType="com.karnouser.dto.response.ShopLocationResponse">
+        SELECT
+            s.id AS shopId,
+            s.name,
+            u.phone AS phone,
+            s.address,
+            s.latitude,
+            s.longitude
+        FROM shops s
+        JOIN users u ON s.owner_id = u.id
+        WHERE s.id IN
+        <foreach collection="shopIds"
+                 item="shopId"
+                 open="("
+                 separator=","
+                close=")">
+            #{shopId}
+        </foreach>
+    </select>
 </mapper>

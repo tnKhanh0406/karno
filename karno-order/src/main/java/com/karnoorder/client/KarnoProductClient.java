@@ -2,6 +2,7 @@ package com.karnoorder.client;
 
 import com.karnoorder.dto.request.UUIDListRequest;
 import com.karnoorder.dto.response.VariantCartResponse;
+import com.karnoorder.dto.response.VariantCheckoutInfo;
 import com.karnoorder.dto.response.VariantPurchasableResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,4 +20,7 @@ public interface KarnoProductClient {
 
     @GetMapping("/internal/product-variants/{variantId}/purchasable-info")
     VariantPurchasableResponse getVariantPurchasableInfo(@PathVariable UUID variantId);
+
+    @PostMapping("/internal/product-variants/checkout-info")
+    List<VariantCheckoutInfo> getCheckoutInfo(@RequestBody UUIDListRequest request);
 }

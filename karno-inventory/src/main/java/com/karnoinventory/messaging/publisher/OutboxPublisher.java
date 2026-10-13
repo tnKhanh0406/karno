@@ -1,12 +1,12 @@
-package com.karnoorder.publisher;
+package com.karnoinventory.messaging.publisher;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.karnoorder.dto.EventEnvelope;
-import com.karnoorder.entity.OutboxEvent;
-import com.karnoorder.repository.OutboxEventRepo;
-import com.karnoorder.service.OutboxEventService;
+import com.karnoinventory.entity.OutboxEvent;
+import com.karnoinventory.messaging.model.EventEnvelope;
+import com.karnoinventory.repository.OutboxEventRepo;
+import com.karnoinventory.service.OutboxService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class OutboxPublisher {
     private final OutboxEventRepo outboxEventRepo;
-    private final OutboxEventService outboxStateService;
+    private final OutboxService outboxStateService;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
@@ -50,13 +50,13 @@ public class OutboxPublisher {
 
             kafkaTemplate
                     .send(
-                        event.getTopic(),
-                        key,
-                        message
+                            event.getTopic(),
+                            key,
+                            message
                     )
                     .get(
-                        sendTimeoutMs,
-                        TimeUnit.MILLISECONDS
+                            sendTimeoutMs,
+                            TimeUnit.MILLISECONDS
                     );
 
             outboxStateService.markPublished(event.getId());

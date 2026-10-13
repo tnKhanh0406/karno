@@ -1,5 +1,6 @@
 package com.karnoorder.entity;
 
+import com.karnoorder.enums.CheckoutSagaStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,7 +17,8 @@ public class CheckoutSaga {
     private UUID id;
     private UUID customerId;
     private String idempotencyKey;
-    private String status;
+    private String requestHash;
+    private CheckoutSagaStatus status;
     private String contextPayload;
     private String resultPayload;
     private String failureCode;

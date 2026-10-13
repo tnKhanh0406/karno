@@ -1,0 +1,2 @@
+ALTER TABLE checkout_sagas
+ADD COLUMN IF NOT EXISTS request_hash VARCHAR(64);

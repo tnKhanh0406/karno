@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.karnouser.repository.UserAddressRepo">
+    <select id="findAddressById" resultType="com.karnouser.dto.response.AddressResponse">
+        SELECT
+            id AS addressId,
+            receiver_name,
+            receiver_phone,
+            receiver_address AS fullAddress,
+            latitude,
+            longitude
+        FROM user_addresses
+        WHERE id = #{id}
+    </select>
+</mapper>
