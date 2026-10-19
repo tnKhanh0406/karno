@@ -7,14 +7,15 @@ import com.karnofleet.exception.RoutingProviderException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,8 @@ import java.util.Map;
         matchIfMissing = true
 )
 public class HereMatrixLoader implements TravelTimeMatrixLoader {
+    private static final DateTimeFormatter HERE_DATE_TIME_FORMAT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
 
     private final WebClient hereMatrixWebClient;
     private final HereMatrixProperties properties;
@@ -54,8 +57,7 @@ public class HereMatrixLoader implements TravelTimeMatrixLoader {
                         .atZone(
                                 ZoneId.of(properties.getZoneId())
                         )
-                        .toOffsetDateTime()
-                        .toString();
+                        .format(HERE_DATE_TIME_FORMAT);
 
         HereMatrixRequest request =
                 new HereMatrixRequest(
@@ -101,6 +103,28 @@ public class HereMatrixLoader implements TravelTimeMatrixLoader {
                         .accept(MediaType.APPLICATION_JSON)
                         .bodyValue(request)
                         .retrieve()
+                        .onStatus(
+                                HttpStatusCode::isError,
+                                clientResponse ->
+                                        clientResponse
+                                                .bodyToMono(String.class)
+                                                .flatMap(body -> {
+                                                    log.error(
+                                                            "HERE Matrix HTTP {}: {}",
+                                                            clientResponse.statusCode(),
+                                                            body
+                                                    );
+
+                                                    return reactor.core.publisher.Mono.error(
+                                                            new RoutingProviderException(
+                                                                    "HERE Matrix HTTP "
+                                                                            + clientResponse.statusCode()
+                                                                            + ": "
+                                                                            + body
+                                                            )
+                                                    );
+                                                })
+                        )
                         .bodyToMono(HereMatrixResponse.class)
                         .block();
 

@@ -16,6 +16,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Component
@@ -26,6 +27,8 @@ import java.util.List;
 )
 public class HereRouteGeometryProvider
         implements RouteGeometryProvider {
+    private static final DateTimeFormatter HERE_DATE_TIME_FORMAT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
 
     private final WebClient hereRoutesWebClient;
     private final HereRoutingProperties properties;
@@ -53,8 +56,7 @@ public class HereRouteGeometryProvider
                                         properties.getZoneId()
                                 )
                         )
-                        .toOffsetDateTime()
-                        .toString();
+                        .format(HERE_DATE_TIME_FORMAT);
 
         HereRoutesResponse response;
 
