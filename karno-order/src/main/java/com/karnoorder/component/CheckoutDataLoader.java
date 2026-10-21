@@ -3,6 +3,7 @@ package com.karnoorder.component;
 import com.karnoorder.client.KarnoProductClient;
 import com.karnoorder.client.KarnoUserClient;
 import com.karnoorder.dto.request.CreateOrderRequest;
+import com.karnoorder.dto.request.CheckoutPreviewRequest;
 import com.karnoorder.dto.request.ShippingSelectionRequest;
 import com.karnoorder.dto.request.UUIDListRequest;
 import com.karnoorder.dto.response.CheckoutAddressResponse;
@@ -35,15 +36,66 @@ public class CheckoutDataLoader {
     private final KarnoUserClient userClient;
 
     public CheckoutData load(UUID customerId, CreateOrderRequest request) {
+        return load(
+                customerId,
+                request.cartItemIds(),
+                request.addressId(),
+                request.shippingSelections(),
+                true
+        );
+    }
+
+    public CheckoutData loadPreview(UUID customerId, CheckoutPreviewRequest request) {
         List<CartItem> cartItems = loadCartItems(customerId, request.cartItemIds());
         Map<UUID, VariantCheckoutInfo> variants = loadVariantMap(cartItems);
         Map<UUID, List<CartItem>> itemsByShop = groupByShop(cartItems, variants);
-        Map<UUID, ShippingSelectionRequest> selections =
-                mapShippingSelections(request.shippingSelections(), itemsByShop.keySet());
+        Map<UUID, ShippingSelectionRequest> selections = defaultShippingSelections(
+                itemsByShop.keySet()
+        );
         Map<UUID, ShopInformationResponse> shops = loadShopMap(itemsByShop.keySet());
         CheckoutAddressResponse address = userClient.getUserAddressById(request.addressId());
         CheckoutContext.Receiver receiver = buildReceiver(address);
-        List<OrderSeed> seeds = buildOrderSeeds(itemsByShop, variants, shops, selections);
+        List<OrderSeed> seeds = buildOrderSeeds(
+                itemsByShop,
+                variants,
+                shops,
+                selections,
+                false
+        );
+
+        return new CheckoutData(
+                variants,
+                itemsByShop,
+                selections,
+                shops,
+                address,
+                receiver,
+                seeds
+        );
+    }
+
+    private CheckoutData load(
+            UUID customerId,
+            Set<UUID> cartItemIds,
+            UUID addressId,
+            List<ShippingSelectionRequest> shippingSelections,
+            boolean validateDisplayedValues
+    ) {
+        List<CartItem> cartItems = loadCartItems(customerId, cartItemIds);
+        Map<UUID, VariantCheckoutInfo> variants = loadVariantMap(cartItems);
+        Map<UUID, List<CartItem>> itemsByShop = groupByShop(cartItems, variants);
+        Map<UUID, ShippingSelectionRequest> selections =
+                mapShippingSelections(shippingSelections, itemsByShop.keySet(), validateDisplayedValues);
+        Map<UUID, ShopInformationResponse> shops = loadShopMap(itemsByShop.keySet());
+        CheckoutAddressResponse address = userClient.getUserAddressById(addressId);
+        CheckoutContext.Receiver receiver = buildReceiver(address);
+        List<OrderSeed> seeds = buildOrderSeeds(
+                itemsByShop,
+                variants,
+                shops,
+                selections,
+                validateDisplayedValues
+        );
 
         return new CheckoutData(
                 variants,
@@ -148,7 +200,8 @@ public class CheckoutDataLoader {
 
     private Map<UUID, ShippingSelectionRequest> mapShippingSelections(
             List<ShippingSelectionRequest> selections,
-            Set<UUID> expectedShopIds
+            Set<UUID> expectedShopIds,
+            boolean validateDisplayedValues
     ) {
         Map<UUID, ShippingSelectionRequest> result = new HashMap<>();
         for (ShippingSelectionRequest selection : selections) {
@@ -156,10 +209,11 @@ public class CheckoutDataLoader {
                     || selection.shopId() == null
                     || selection.shippingMethod() == null
                     || selection.shippingMethod().isBlank()
-                    || selection.displayedShippingFee() == null
+                    || (validateDisplayedValues
+                    && (selection.displayedShippingFee() == null
                     || selection.displayedShippingFee().signum() < 0
                     || selection.displayedSubtotal() == null
-                    || selection.displayedSubtotal().signum() < 0) {
+                    || selection.displayedSubtotal().signum() < 0))) {
                 throw new CheckoutException(
                         HttpStatus.BAD_REQUEST,
                         "INVALID_SHIPPING_SELECTION",
@@ -184,6 +238,19 @@ public class CheckoutDataLoader {
             );
         }
 
+        return result;
+    }
+
+    private Map<UUID, ShippingSelectionRequest> defaultShippingSelections(
+            Set<UUID> shopIds
+    ) {
+        Map<UUID, ShippingSelectionRequest> result = new HashMap<>();
+        for (UUID shopId : shopIds) {
+            result.put(
+                    shopId,
+                    new ShippingSelectionRequest(shopId, "STANDARD", null, null)
+            );
+        }
         return result;
     }
 
@@ -252,7 +319,8 @@ public class CheckoutDataLoader {
             Map<UUID, List<CartItem>> itemsByShop,
             Map<UUID, VariantCheckoutInfo> variants,
             Map<UUID, ShopInformationResponse> shops,
-            Map<UUID, ShippingSelectionRequest> selections
+            Map<UUID, ShippingSelectionRequest> selections,
+            boolean validateDisplayedSubtotal
     ) {
         List<OrderSeed> result = new ArrayList<>();
 
@@ -272,7 +340,8 @@ public class CheckoutDataLoader {
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
             ShippingSelectionRequest selection = selections.get(shopId);
-            if (subtotal.compareTo(selection.displayedSubtotal()) != 0) {
+            if (validateDisplayedSubtotal
+                    && subtotal.compareTo(selection.displayedSubtotal()) != 0) {
                 throw new CheckoutException(
                         HttpStatus.CONFLICT,
                         "PRODUCT_PRICE_CHANGED",

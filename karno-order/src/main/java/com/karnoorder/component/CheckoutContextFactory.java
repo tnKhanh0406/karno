@@ -26,7 +26,7 @@ public class CheckoutContextFactory {
             ShippingRateService.ShippingResult shipping
     ) {
         List<CheckoutContext.OrderDraft> orders =
-                buildOrders(data.orderSeeds(), shipping.rates(), data.selections());
+                buildOrders(data.orderSeeds(), shipping.rates(), data.selections(), true);
 
         return new CheckoutContext(
                 UUID.randomUUID(),
@@ -41,10 +41,32 @@ public class CheckoutContextFactory {
         );
     }
 
+    public CheckoutContext createPreview(
+            UUID customerId,
+            CheckoutDataLoader.CheckoutData data,
+            ShippingRateService.ShippingResult shipping
+    ) {
+        List<CheckoutContext.OrderDraft> orders =
+                buildOrders(data.orderSeeds(), shipping.rates(), data.selections(), false);
+
+        return new CheckoutContext(
+                UUID.randomUUID(),
+                customerId,
+                data.receiver(),
+                null,
+                null,
+                null,
+                null,
+                Instant.now(),
+                List.copyOf(orders)
+        );
+    }
+
     private List<CheckoutContext.OrderDraft> buildOrders(
             List<CheckoutDataLoader.OrderSeed> seeds,
             Map<UUID, ShippingRateResponse.Rate> rates,
-            Map<UUID, ShippingSelectionRequest> selections
+            Map<UUID, ShippingSelectionRequest> selections,
+            boolean validateDisplayedShippingFee
     ) {
         List<CheckoutContext.OrderDraft> result = new ArrayList<>();
 
@@ -73,7 +95,8 @@ public class CheckoutContextFactory {
                 );
             }
 
-            if (rate.shippingFee().compareTo(selection.displayedShippingFee()) != 0) {
+            if (validateDisplayedShippingFee
+                    && rate.shippingFee().compareTo(selection.displayedShippingFee()) != 0) {
                 throw new CheckoutException(
                         HttpStatus.CONFLICT,
                         "SHIPPING_FEE_CHANGED",

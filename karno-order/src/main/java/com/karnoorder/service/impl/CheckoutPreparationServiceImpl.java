@@ -7,6 +7,7 @@ import com.karnoorder.constants.AggregateTypes;
 import com.karnoorder.constants.EventTopics;
 import com.karnoorder.constants.EventTypes;
 import com.karnoorder.dto.request.CreateOrderRequest;
+import com.karnoorder.dto.request.CheckoutPreviewRequest;
 import com.karnoorder.dto.response.CheckoutContext;
 import com.karnoorder.entity.CheckoutSaga;
 import com.karnoorder.enums.CheckoutSagaStatus;
@@ -85,5 +86,15 @@ public class CheckoutPreparationServiceImpl implements CheckoutPreparationServic
                 shippingRateService.calculate(data);
 
         return contextFactory.create(customerId, request, data, shipping);
+    }
+
+    @Override
+    public CheckoutContext preview(UUID customerId, CheckoutPreviewRequest request) {
+        CheckoutDataLoader.CheckoutData data =
+                dataLoader.loadPreview(customerId, request);
+        ShippingRateService.ShippingResult shipping =
+                shippingRateService.calculate(data);
+
+        return contextFactory.createPreview(customerId, data, shipping);
     }
 }
