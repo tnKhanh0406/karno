@@ -3,6 +3,9 @@ package com.karnoorder.messaging.handler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.karnoorder.component.ShipmentCreationEventFactory;
+import com.karnoorder.constants.AggregateTypes;
+import com.karnoorder.constants.EventTopics;
+import com.karnoorder.constants.EventTypes;
 import com.karnoorder.dto.response.CheckoutContext;
 import com.karnoorder.entity.CheckoutSaga;
 import com.karnoorder.enums.CheckoutSagaStatus;
@@ -24,9 +27,6 @@ import java.util.UUID;
 @Slf4j
 public class InventoryConfirmedHandler {
     private static final String CONSUMER_NAME = "order-inventory-confirmed-handler";
-    private static final String EVENT_TYPE = "INVENTORY_CONFIRMED";
-    private static final String SHIPMENT_EVENT_TYPE = "SHIPMENT_CREATION_REQUESTED";
-    private static final String SHIPMENT_TOPIC = "shipping.shipment.creation.requested";
 
     private final ProcessedEventRepo processedEventRepo;
     private final CheckoutSagaRepo checkoutSagaRepo;
@@ -37,7 +37,7 @@ public class InventoryConfirmedHandler {
 
 
     @Transactional
-    public void handle(UUID eventId, InventoryConfirmedPayload payload) {
+    public void handleInventoryConfirmed(UUID eventId, InventoryConfirmedPayload payload) {
         if (eventId == null
                 || payload == null
                 || payload.checkoutId() == null) {
@@ -46,16 +46,16 @@ public class InventoryConfirmedHandler {
         }
 
         UUID checkoutId = payload.checkoutId();
-        log.info("[STAGE 9] Start InventoryConfirmed checkoutId={}", checkoutId);
+        log.info("Processing inventory confirmation, checkoutId={}", checkoutId);
 
         int inserted = processedEventRepo.insertIfAbsent(
                 eventId,
                 CONSUMER_NAME,
-                EVENT_TYPE
+                EventTypes.INVENTORY_CONFIRMED
         );
 
         if (inserted == 0) {
-            log.info("[STAGE 9] Duplicate eventId={}", eventId);
+            log.info("Duplicate inventory confirmation, eventId={}", eventId);
             return;
         }
 
@@ -66,7 +66,7 @@ public class InventoryConfirmedHandler {
         }
 
         if (saga.getStatus() == CheckoutSagaStatus.COMPLETED) {
-            log.info("[STAGE 9] Saga already COMPLETED checkoutId={}", checkoutId);
+            log.info("Checkout already completed, checkoutId={}", checkoutId);
             return;
         }
 
@@ -97,7 +97,6 @@ public class InventoryConfirmedHandler {
             );
         }
 
-        // 8. Saga -> COMPLETED
         int updated = checkoutSagaRepo.markCompleted(checkoutId);
         if (updated != 1) {
             throw new IllegalStateException("Cannot mark Saga COMPLETED");
@@ -106,21 +105,21 @@ public class InventoryConfirmedHandler {
         for (CheckoutContext.OrderDraft order : context.orders()) {
             ShipmentCreationRequestedPayload shipmentPayload = shipmentFactory.build(context, order);
             outboxService.enqueueEvent(
-                    "ORDER",
+                    AggregateTypes.ORDER,
                     order.orderId(),
-                    SHIPMENT_EVENT_TYPE,
-                    SHIPMENT_TOPIC,
+                    EventTypes.SHIPMENT_CREATION_REQUESTED,
+                    EventTopics.SHIPMENT_CREATION_REQUESTED,
                     shipmentPayload
             );
 
             log.info(
-                    "[STAGE 9] Shipment creation enqueued orderId={}",
+                    "Shipment creation requested, orderId={}",
                     order.orderId()
             );
         }
 
         log.info(
-                "[STAGE 9] Checkout Saga COMPLETED checkoutId={}, shipmentCount={}",
+                "Checkout completed and shipment creation requested, checkoutId={}, shipmentCount={}",
                 checkoutId,
                 context.orders().size()
         );

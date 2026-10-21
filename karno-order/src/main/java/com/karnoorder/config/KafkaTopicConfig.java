@@ -1,5 +1,6 @@
 package com.karnoorder.config;
 
+import com.karnoorder.constants.EventTopics;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,7 +13,7 @@ public class KafkaTopicConfig {
     public NewTopic inventoryReservationRequestedTopic() {
 
         return TopicBuilder
-                .name("inventory.reservation.requested")
+                .name(EventTopics.INVENTORY_RESERVATION_REQUESTED)
                 .partitions(3)
                 .replicas(1)
                 .build();

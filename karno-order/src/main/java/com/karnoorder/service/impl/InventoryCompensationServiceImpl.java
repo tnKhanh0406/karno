@@ -2,6 +2,9 @@ package com.karnoorder.service.impl;
 
 import com.karnoorder.entity.CheckoutSaga;
 import com.karnoorder.enums.CheckoutSagaStatus;
+import com.karnoorder.constants.AggregateTypes;
+import com.karnoorder.constants.EventTopics;
+import com.karnoorder.constants.EventTypes;
 import com.karnoorder.messaging.payload.InventoryReleaseRequestedPayload;
 import com.karnoorder.repository.CheckoutSagaRepo;
 import com.karnoorder.service.InventoryCompensationService;
@@ -67,10 +70,10 @@ public class InventoryCompensationServiceImpl implements InventoryCompensationSe
         InventoryReleaseRequestedPayload payload = new InventoryReleaseRequestedPayload(checkoutId, "ORDER_CREATION_FAILED");
 
         outboxService.enqueueEvent(
-                "CHECKOUT",
+                AggregateTypes.CHECKOUT,
                 checkoutId,
-                "INVENTORY_RELEASE_REQUESTED",
-                "inventory.release.requested",
+                EventTypes.INVENTORY_RELEASE_REQUESTED,
+                EventTopics.INVENTORY_RELEASE_REQUESTED,
                 payload
         );
 

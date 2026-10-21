@@ -3,7 +3,9 @@ package com.karnoorder.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.karnoorder.component.InventoryReservationEventFactory;
-import com.karnoorder.constants.CheckoutEventConstants;
+import com.karnoorder.constants.AggregateTypes;
+import com.karnoorder.constants.EventTopics;
+import com.karnoorder.constants.EventTypes;
 import com.karnoorder.dto.response.CheckoutContext;
 import com.karnoorder.dto.response.SagaStartResult;
 import com.karnoorder.entity.CheckoutSaga;
@@ -67,10 +69,10 @@ public class CheckoutSagaStartTxServiceImpl implements CheckoutSagaStartTxServic
         InventoryReservationRequestedPayload payload = eventFactory.build(context);
 
         outboxService.enqueueEvent(
-                CheckoutEventConstants.AGGREGATE_TYPE,
+                AggregateTypes.CHECKOUT,
                 context.checkoutId(),
-                CheckoutEventConstants.INVENTORY_RESERVATION_REQUESTED,
-                CheckoutEventConstants.INVENTORY_RESERVATION_REQUESTED_TOPIC,
+                EventTypes.INVENTORY_RESERVATION_REQUESTED,
+                EventTopics.INVENTORY_RESERVATION_REQUESTED,
                 payload
         );
 

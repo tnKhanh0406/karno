@@ -2,13 +2,13 @@ package com.karnoorder.messaging.handler;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.karnoorder.constants.AggregateTypes;
+import com.karnoorder.constants.EventTopics;
+import com.karnoorder.constants.EventTypes;
 import com.karnoorder.dto.response.CheckoutContext;
 import com.karnoorder.entity.CheckoutSaga;
-import com.karnoorder.entity.Order;
-import com.karnoorder.entity.OrderItem;
 import com.karnoorder.enums.CheckoutSagaStatus;
-import com.karnoorder.enums.OrderStatus;
-import com.karnoorder.enums.PaymentStatus;
+import com.karnoorder.mapper.OrderMapper;
 import com.karnoorder.messaging.payload.InventoryConfirmationRequestedPayload;
 import com.karnoorder.messaging.payload.InventoryReleasedPayload;
 import com.karnoorder.messaging.payload.InventoryReservationFailedPayload;
@@ -31,8 +31,6 @@ import java.util.UUID;
 public class InventoryResultHandler {
 
     private static final String CONSUMER_NAME = "order-inventory-result-handler";
-    private static final String CONFIRM_EVENT_TYPE = "INVENTORY_CONFIRMATION_REQUESTED";
-    private static final String CONFIRM_TOPIC = "inventory.confirmation.requested";
 
     private final ProcessedEventRepo processedEventRepo;
     private final CheckoutSagaRepo checkoutSagaRepo;
@@ -42,18 +40,19 @@ public class InventoryResultHandler {
     private final CartItemRepo cartItemRepo;
     private final OutboxEventService outboxService;
     private final ObjectMapper objectMapper;
+    private final OrderMapper orderMapper;
 
     @Transactional
-    public void onReserved(UUID eventId, InventoryReservedPayload payload) {
+    public void handleInventoryReserved(UUID eventId, InventoryReservedPayload payload) {
         int inserted =
                 processedEventRepo.insertIfAbsent(
                         eventId,
                         CONSUMER_NAME,
-                        "INVENTORY_RESERVED"
+                        EventTypes.INVENTORY_RESERVED
                 );
 
         if (inserted == 0) {
-            log.info("Duplicate INVENTORY_RESERVED, eventId={}", eventId);
+            log.info("Duplicate inventory reservation result, eventId={}", eventId);
             return;
         }
 
@@ -65,13 +64,15 @@ public class InventoryResultHandler {
         if (saga.getStatus() == CheckoutSagaStatus.ORDER_COMMITTED
                 || saga.getStatus() == CheckoutSagaStatus.COMPLETED) {
             log.info(
-                    "Checkout already committed, checkoutId={}",
+                    "Checkout already committed, skipping inventory reservation result, checkoutId={}",
                     payload.checkoutId()
             );
             return;
         }
         if (saga.getStatus() != CheckoutSagaStatus.PROCESSING) {
-            throw new IllegalStateException("Unexpected Saga status for INVENTORY_RESERVED: " + saga.getStatus());
+            throw new IllegalStateException(
+                    "Unexpected Saga status for inventory reservation result: " + saga.getStatus()
+            );
         }
 
         CheckoutContext context = deserializeContext(saga.getContextPayload());
@@ -83,8 +84,8 @@ public class InventoryResultHandler {
             throw new UnrecoverableOrderCreationException("Customer ID mismatch");
         }
 
-        createOrders(context);
-        removeCheckoutCartItems(context);
+        persistOrders(context);
+        removePurchasedCartItems(context);
 
         int updated = checkoutSagaRepo.markOrderCommitted(context.checkoutId());
 
@@ -95,26 +96,26 @@ public class InventoryResultHandler {
         InventoryConfirmationRequestedPayload confirmPayload = new InventoryConfirmationRequestedPayload(context.checkoutId());
 
         outboxService.enqueueEvent(
-                "CHECKOUT",
+                AggregateTypes.CHECKOUT,
                 context.checkoutId(),
-                CONFIRM_EVENT_TYPE,
-                CONFIRM_TOPIC,
+                EventTypes.INVENTORY_CONFIRMATION_REQUESTED,
+                EventTopics.INVENTORY_CONFIRMATION_REQUESTED,
                 confirmPayload
         );
 
         log.info(
-                "Stage 8 success: orders created, checkoutId={}",
+                "Orders created and inventory confirmation requested, checkoutId={}",
                 context.checkoutId()
         );
     }
 
     @Transactional
-    public void onReservationFailed(UUID eventId, InventoryReservationFailedPayload payload) {
+    public void handleReservationFailed(UUID eventId, InventoryReservationFailedPayload payload) {
         int inserted =
                 processedEventRepo.insertIfAbsent(
                         eventId,
                         CONSUMER_NAME,
-                        "INVENTORY_RESERVATION_FAILED"
+                        EventTypes.INVENTORY_RESERVATION_FAILED
                 );
 
         if (inserted == 0) {
@@ -131,10 +132,12 @@ public class InventoryResultHandler {
             return;
         }
         if (saga.getStatus() != CheckoutSagaStatus.PROCESSING) {
-            throw new IllegalStateException("Unexpected Saga status for reservation failure: " + saga.getStatus());
+            throw new IllegalStateException(
+                    "Unexpected Saga status for inventory reservation failure: " + saga.getStatus()
+            );
         }
 
-        String failureCode = "INVENTORY_RESERVATION_FAILED";
+        String failureCode = EventTypes.INVENTORY_RESERVATION_FAILED;
         String failureMessage = "Không thể giữ hàng";
 
         int updated =
@@ -149,16 +152,16 @@ public class InventoryResultHandler {
         }
 
         log.info(
-                "Stage 8 reservation failed, checkoutId={}, code={}",
+                "Inventory reservation failed, checkoutId={}, code={}",
                 payload.checkoutId(),
                 failureCode
         );
     }
 
     @Transactional
-    public void onReservationExpired(UUID eventId, InventoryReservationExpiredPayload payload) {
+    public void handleReservationExpired(UUID eventId, InventoryReservationExpiredPayload payload) {
         if (processedEventRepo.insertIfAbsent(
-                eventId, CONSUMER_NAME, "INVENTORY_RESERVATION_EXPIRED") == 0) {
+                eventId, CONSUMER_NAME, EventTypes.INVENTORY_RESERVATION_EXPIRED) == 0) {
             return;
         }
 
@@ -181,19 +184,19 @@ public class InventoryResultHandler {
         }
         if (checkoutSagaRepo.markFailed(
                 payload.checkoutId(),
-                "INVENTORY_RESERVATION_EXPIRED",
+                EventTypes.INVENTORY_RESERVATION_EXPIRED,
                 "Thời gian giữ hàng đã hết") != 1) {
             throw new IllegalStateException("Cannot mark expired checkout FAILED");
         }
     }
 
     @Transactional
-    public void onReleased(UUID eventId, InventoryReleasedPayload payload) {
+    public void handleInventoryReleased(UUID eventId, InventoryReleasedPayload payload) {
         int inserted =
                 processedEventRepo.insertIfAbsent(
                         eventId,
                         CONSUMER_NAME,
-                        "INVENTORY_RELEASED"
+                        EventTypes.INVENTORY_RELEASED
                 );
 
         if (inserted == 0) {
@@ -233,7 +236,7 @@ public class InventoryResultHandler {
         }
     }
 
-    private void createOrders(CheckoutContext context) {
+    private void persistOrders(CheckoutContext context) {
         if (context.orders() == null || context.orders().isEmpty()) {
             throw new UnrecoverableOrderCreationException("CheckoutContext has no OrderDraft");
         }
@@ -243,7 +246,7 @@ public class InventoryResultHandler {
                 throw new UnrecoverableOrderCreationException("Invalid OrderDraft: " + draft.orderId());
             }
 
-            Order order = toOrder(context, draft);
+            var order = orderMapper.toOrder(context, draft);
             int orderInserted = orderRepo.insert(order);
             if (orderInserted != 1) {
                 throw new UnrecoverableOrderCreationException("Cannot insert Order: " + draft.orderId());
@@ -251,7 +254,7 @@ public class InventoryResultHandler {
 
             for (CheckoutContext.OrderItemDraft item : draft.items()) {
 
-                OrderItem itemRow = toOrderItem(draft.orderId(), item);
+                var itemRow = orderMapper.toOrderItem(draft.orderId(), item);
                 int itemInserted = orderItemRepo.insert(itemRow);
                 if (itemInserted != 1) {
                     throw new UnrecoverableOrderCreationException("Cannot insert OrderItem: " + item.orderItemId());
@@ -271,7 +274,7 @@ public class InventoryResultHandler {
         }
     }
 
-    private void removeCheckoutCartItems(CheckoutContext context) {
+    private void removePurchasedCartItems(CheckoutContext context) {
 
         for (CheckoutContext.OrderDraft order : context.orders()) {
             for (CheckoutContext.OrderItemDraft item : order.items()) {
@@ -292,46 +295,4 @@ public class InventoryResultHandler {
         }
     }
 
-    private Order toOrder(CheckoutContext context, CheckoutContext.OrderDraft draft) {
-        Order order = new Order();
-        order.setId(draft.orderId());
-        order.setCustomerId(context.customerId());
-        order.setCheckoutId(context.checkoutId());
-        order.setReceiverName(context.receiver().name());
-        order.setReceiverAddress(context.receiver().address());
-        order.setReceiverPhone(context.receiver().phone());
-        order.setShopId(draft.shopId());
-        order.setShopName(draft.shopName());
-        order.setStatus(OrderStatus.PENDING);
-        order.setSubtotal(draft.subtotal());
-        order.setShippingFee(draft.shipping().shippingFee());
-        order.setTotalAmount(draft.totalAmount());
-        order.setShippingMethod(draft.shipping().shippingMethod());
-        order.setPaymentMethod(context.paymentMethod());
-        order.setPaymentStatus(PaymentStatus.PENDING);
-        order.setDeliverySlotStart(context.deliverySlotStart() != null ? context.deliverySlotStart().atOffset(java.time.ZoneOffset.UTC) : null);
-        order.setDeliverySlotEnd(context.deliverySlotEnd() != null ? context.deliverySlotEnd().atOffset(java.time.ZoneOffset.UTC) : null);
-        order.setNote(context.note());
-        return order;
-    }
-
-    private OrderItem toOrderItem(UUID orderId, CheckoutContext.OrderItemDraft itemDraft) {
-        OrderItem item = new OrderItem();
-        item.setId(itemDraft.orderItemId());
-        item.setOrderId(orderId);
-        item.setProductId(itemDraft.productId());
-        item.setVariantId(itemDraft.variantId());
-        item.setProductName(itemDraft.productName());
-        item.setVariantName(itemDraft.variantName());
-        item.setSku(itemDraft.sku());
-        item.setProductImageUrl(itemDraft.productImageUrl());
-        item.setUnitPrice(itemDraft.unitPrice());
-        item.setQuantity(itemDraft.quantity());
-        item.setSubtotal(itemDraft.subtotal());
-        item.setWeightGram(itemDraft.weightGram());
-        item.setLengthCm(itemDraft.lengthCm());
-        item.setWidthCm(itemDraft.widthCm());
-        item.setHeightCm(itemDraft.heightCm());
-        return item;
-    }
 }

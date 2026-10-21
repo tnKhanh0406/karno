@@ -2,6 +2,7 @@ package com.karnoorder.messaging.listener;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.karnoorder.constants.EventTypes;
 import com.karnoorder.exception.UnrecoverableOrderCreationException;
 import com.karnoorder.messaging.handler.InventoryConfirmedHandler;
 import com.karnoorder.messaging.handler.InventoryResultHandler;
@@ -37,7 +38,7 @@ public class InventoryResultListener {
 
         EventEnvelope envelope = objectMapper.readValue(message, EventEnvelope.class);
 
-        validateEnvelope(envelope, "INVENTORY_RESERVED");
+        validateEnvelope(envelope, EventTypes.INVENTORY_RESERVED);
 
         InventoryReservedPayload payload =
                 objectMapper.treeToValue(
@@ -53,7 +54,7 @@ public class InventoryResultListener {
         );
 
         try {
-            handler.onReserved(envelope.eventId(), payload);
+            handler.handleInventoryReserved(envelope.eventId(), payload);
         } catch (UnrecoverableOrderCreationException ex) {
             log.error(
                     "Unrecoverable order creation error, checkoutId={}",
@@ -82,7 +83,7 @@ public class InventoryResultListener {
 
         EventEnvelope envelope = objectMapper.readValue(message, EventEnvelope.class);
 
-        validateEnvelope(envelope, "INVENTORY_RESERVATION_FAILED");
+        validateEnvelope(envelope, EventTypes.INVENTORY_RESERVATION_FAILED);
 
         InventoryReservationFailedPayload payload =
                 objectMapper.treeToValue(
@@ -92,7 +93,7 @@ public class InventoryResultListener {
 
         validateCheckoutId(envelope, payload == null ? null : payload.checkoutId());
 
-        handler.onReservationFailed(envelope.eventId(), payload);
+        handler.handleReservationFailed(envelope.eventId(), payload);
         log.info(
                 "INVENTORY_RESERVATION_FAILED handled, checkoutId={}",
                 payload.checkoutId()
@@ -105,11 +106,11 @@ public class InventoryResultListener {
     )
     public void onInventoryReservationExpired(String message) throws JsonProcessingException {
         EventEnvelope envelope = objectMapper.readValue(message, EventEnvelope.class);
-        validateEnvelope(envelope, "INVENTORY_RESERVATION_EXPIRED");
+        validateEnvelope(envelope, EventTypes.INVENTORY_RESERVATION_EXPIRED);
         InventoryReservationExpiredPayload payload = objectMapper.treeToValue(
                 envelope.data(), InventoryReservationExpiredPayload.class);
         validateCheckoutId(envelope, payload == null ? null : payload.checkoutId());
-        handler.onReservationExpired(envelope.eventId(), payload);
+        handler.handleReservationExpired(envelope.eventId(), payload);
     }
 
     @KafkaListener(
@@ -119,7 +120,7 @@ public class InventoryResultListener {
     public void onInventoryReleased(String message) throws JsonProcessingException {
         EventEnvelope envelope = objectMapper.readValue(message, EventEnvelope.class);
 
-        validateEnvelope(envelope, "INVENTORY_RELEASED");
+        validateEnvelope(envelope, EventTypes.INVENTORY_RELEASED);
 
         InventoryReleasedPayload payload =
                 objectMapper.treeToValue(
@@ -129,7 +130,7 @@ public class InventoryResultListener {
 
         validateCheckoutId(envelope, payload == null ? null : payload.checkoutId());
 
-        handler.onReleased(envelope.eventId(), payload);
+        handler.handleInventoryReleased(envelope.eventId(), payload);
     }
 
     @KafkaListener(
@@ -140,9 +141,7 @@ public class InventoryResultListener {
             String message
     ) throws JsonProcessingException {
 
-        log.info(
-                "[STAGE 9] Received INVENTORY_CONFIRMED"
-        );
+        log.info("Received inventory confirmation");
 
         EventEnvelope envelope =
                 objectMapper.readValue(
@@ -152,7 +151,7 @@ public class InventoryResultListener {
 
         validateEnvelope(
                 envelope,
-                "INVENTORY_CONFIRMED"
+                EventTypes.INVENTORY_CONFIRMED
         );
 
         InventoryConfirmedPayload payload =
@@ -168,15 +167,12 @@ public class InventoryResultListener {
                         : payload.checkoutId()
         );
 
-        inventoryConfirmedHandler.handle(
+        inventoryConfirmedHandler.handleInventoryConfirmed(
                 envelope.eventId(),
                 payload
         );
 
-        log.info(
-                "[STAGE 9] INVENTORY_CONFIRMED handled checkoutId={}",
-                payload.checkoutId()
-        );
+        log.info("Inventory confirmation handled, checkoutId={}", payload.checkoutId());
     }
 
     private void validateEnvelope(EventEnvelope envelope, String expectedType) {
