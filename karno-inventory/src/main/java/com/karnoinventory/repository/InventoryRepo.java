@@ -24,4 +24,8 @@ public interface InventoryRepo {
     Inventory findByIdForUpdate(
             @Param("inventoryId") UUID inventoryId
     );
+    int decreaseReserved(
+            @Param("inventoryId") UUID inventoryId,
+            @Param("quantity") Integer quantity
+    );
 }

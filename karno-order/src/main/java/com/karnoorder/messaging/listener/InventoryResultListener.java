@@ -9,6 +9,7 @@ import com.karnoorder.messaging.model.EventEnvelope;
 import com.karnoorder.messaging.payload.InventoryConfirmedPayload;
 import com.karnoorder.messaging.payload.InventoryReleasedPayload;
 import com.karnoorder.messaging.payload.InventoryReservationFailedPayload;
+import com.karnoorder.messaging.payload.InventoryReservationExpiredPayload;
 import com.karnoorder.messaging.payload.InventoryReservedPayload;
 import com.karnoorder.service.InventoryCompensationService;
 import lombok.RequiredArgsConstructor;
@@ -96,6 +97,19 @@ public class InventoryResultListener {
                 "INVENTORY_RESERVATION_FAILED handled, checkoutId={}",
                 payload.checkoutId()
         );
+    }
+
+    @KafkaListener(
+            topics = "${kafka.topics.inventory-reservation-expired}",
+            groupId = "karno-order-checkout-saga"
+    )
+    public void onInventoryReservationExpired(String message) throws JsonProcessingException {
+        EventEnvelope envelope = objectMapper.readValue(message, EventEnvelope.class);
+        validateEnvelope(envelope, "INVENTORY_RESERVATION_EXPIRED");
+        InventoryReservationExpiredPayload payload = objectMapper.treeToValue(
+                envelope.data(), InventoryReservationExpiredPayload.class);
+        validateCheckoutId(envelope, payload == null ? null : payload.checkoutId());
+        handler.onReservationExpired(envelope.eventId(), payload);
     }
 
     @KafkaListener(

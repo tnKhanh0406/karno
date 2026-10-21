@@ -36,7 +36,12 @@
             order_id,
             order_item_id,
             quantity,
-            status
+            status,
+            expires_at,
+            confirmed_at,
+            released_at,
+            created_at,
+            updated_at
         FROM inventory_reservations
         WHERE checkout_id = #{checkoutId}
         ORDER BY inventory_id, id
@@ -45,8 +50,37 @@
 
     <update id="markConfirmed">
         UPDATE inventory_reservations
-        SET status = 'CONFIRMED'
+        SET status = 'CONFIRMED',
+            confirmed_at = CURRENT_TIMESTAMP,
+            updated_at = CURRENT_TIMESTAMP
         WHERE id = #{reservationId}
         AND status = 'ACTIVE'
     </update>
+
+    <update id="markReleased">
+        UPDATE inventory_reservations
+        SET status = 'RELEASED',
+            released_at = CURRENT_TIMESTAMP,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{reservationId}
+          AND status = 'ACTIVE'
+    </update>
+
+    <update id="markExpired">
+        UPDATE inventory_reservations
+        SET status = 'EXPIRED',
+            released_at = CURRENT_TIMESTAMP,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{reservationId}
+          AND status = 'ACTIVE'
+    </update>
+
+    <select id="findExpiredCheckoutIds" resultType="java.util.UUID">
+        SELECT DISTINCT checkout_id
+        FROM inventory_reservations
+        WHERE status = 'ACTIVE'
+          AND expires_at &lt;= #{now}
+        ORDER BY checkout_id
+        LIMIT #{limit}
+    </select>
 </mapper>

@@ -12,7 +12,9 @@ import com.karnoorder.enums.PaymentStatus;
 import com.karnoorder.messaging.payload.InventoryConfirmationRequestedPayload;
 import com.karnoorder.messaging.payload.InventoryReleasedPayload;
 import com.karnoorder.messaging.payload.InventoryReservationFailedPayload;
+import com.karnoorder.messaging.payload.InventoryReservationExpiredPayload;
 import com.karnoorder.messaging.payload.InventoryReservedPayload;
+import com.karnoorder.exception.UnrecoverableOrderCreationException;
 import com.karnoorder.repository.*;
 import com.karnoorder.service.OutboxEventService;
 import lombok.RequiredArgsConstructor;
@@ -75,10 +77,10 @@ public class InventoryResultHandler {
         CheckoutContext context = deserializeContext(saga.getContextPayload());
 
         if (!Objects.equals(context.checkoutId(), payload.checkoutId())) {
-            throw new IllegalStateException("Checkout ID mismatch");
+            throw new UnrecoverableOrderCreationException("Checkout ID mismatch");
         }
         if (!Objects.equals(context.customerId(), saga.getCustomerId())) {
-            throw new IllegalStateException("Customer ID mismatch");
+            throw new UnrecoverableOrderCreationException("Customer ID mismatch");
         }
 
         createOrders(context);
@@ -154,6 +156,38 @@ public class InventoryResultHandler {
     }
 
     @Transactional
+    public void onReservationExpired(UUID eventId, InventoryReservationExpiredPayload payload) {
+        if (processedEventRepo.insertIfAbsent(
+                eventId, CONSUMER_NAME, "INVENTORY_RESERVATION_EXPIRED") == 0) {
+            return;
+        }
+
+        CheckoutSaga saga = checkoutSagaRepo.findByIdForUpdate(payload.checkoutId());
+        if (saga == null) {
+            throw new IllegalStateException("Checkout Saga not found: " + payload.checkoutId());
+        }
+        if (saga.getStatus() == CheckoutSagaStatus.FAILED) {
+            return;
+        }
+        if (saga.getStatus() == CheckoutSagaStatus.COMPENSATING) {
+            if (checkoutSagaRepo.markFailedAfterRelease(payload.checkoutId()) != 1) {
+                throw new IllegalStateException("Cannot complete expired compensation");
+            }
+            return;
+        }
+        if (saga.getStatus() != CheckoutSagaStatus.PROCESSING) {
+            throw new IllegalStateException(
+                    "Reservation expired after checkout commit: " + saga.getStatus());
+        }
+        if (checkoutSagaRepo.markFailed(
+                payload.checkoutId(),
+                "INVENTORY_RESERVATION_EXPIRED",
+                "Thời gian giữ hàng đã hết") != 1) {
+            throw new IllegalStateException("Cannot mark expired checkout FAILED");
+        }
+    }
+
+    @Transactional
     public void onReleased(UUID eventId, InventoryReleasedPayload payload) {
         int inserted =
                 processedEventRepo.insertIfAbsent(
@@ -195,24 +229,24 @@ public class InventoryResultHandler {
         try {
             return objectMapper.readValue(json, CheckoutContext.class);
         } catch (JsonProcessingException ex) {
-            throw new IllegalStateException("Cannot deserialize CheckoutContext", ex);
+            throw new UnrecoverableOrderCreationException("Cannot deserialize CheckoutContext", ex);
         }
     }
 
     private void createOrders(CheckoutContext context) {
         if (context.orders() == null || context.orders().isEmpty()) {
-            throw new IllegalStateException("CheckoutContext has no OrderDraft");
+            throw new UnrecoverableOrderCreationException("CheckoutContext has no OrderDraft");
         }
 
         for (CheckoutContext.OrderDraft draft : context.orders()) {
             if (draft.items() == null || draft.items().isEmpty() || draft.shipping() == null) {
-                throw new IllegalStateException("Invalid OrderDraft: " + draft.orderId());
+                throw new UnrecoverableOrderCreationException("Invalid OrderDraft: " + draft.orderId());
             }
 
             Order order = toOrder(context, draft);
             int orderInserted = orderRepo.insert(order);
             if (orderInserted != 1) {
-                throw new IllegalStateException("Cannot insert Order: " + draft.orderId());
+                throw new UnrecoverableOrderCreationException("Cannot insert Order: " + draft.orderId());
             }
 
             for (CheckoutContext.OrderItemDraft item : draft.items()) {
@@ -220,7 +254,7 @@ public class InventoryResultHandler {
                 OrderItem itemRow = toOrderItem(draft.orderId(), item);
                 int itemInserted = orderItemRepo.insert(itemRow);
                 if (itemInserted != 1) {
-                    throw new IllegalStateException("Cannot insert OrderItem: " + item.orderItemId());
+                    throw new UnrecoverableOrderCreationException("Cannot insert OrderItem: " + item.orderItemId());
                 }
             }
 
@@ -232,7 +266,7 @@ public class InventoryResultHandler {
                     );
 
             if (historyInserted != 1) {
-                throw new IllegalStateException("Cannot insert Order history: " + draft.orderId());
+                throw new UnrecoverableOrderCreationException("Cannot insert Order history: " + draft.orderId());
             }
         }
     }

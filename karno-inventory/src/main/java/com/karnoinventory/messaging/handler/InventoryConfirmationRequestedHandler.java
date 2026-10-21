@@ -9,6 +9,8 @@ import com.karnoinventory.enums.ReservationStatus;
 import com.karnoinventory.messaging.model.EventEnvelope;
 import com.karnoinventory.messaging.payload.InventoryConfirmationRequestedPayload;
 import com.karnoinventory.messaging.payload.InventoryConfirmedPayload;
+import com.karnoinventory.constant.EventTopics;
+import com.karnoinventory.constant.EventTypes;
 import com.karnoinventory.repository.InventoryRepo;
 import com.karnoinventory.repository.InventoryReservationRepo;
 import com.karnoinventory.repository.ProcessedEventRepo;
@@ -30,8 +32,6 @@ public class InventoryConfirmationRequestedHandler {
 
     private static final String CONSUMER_NAME = "inventory-confirmation-handler";
     private static final String REQUEST_EVENT_TYPE = "INVENTORY_CONFIRMATION_REQUESTED";
-    private static final String RESPONSE_EVENT_TYPE = "INVENTORY_CONFIRMED";
-    private static final String RESPONSE_TOPIC = "inventory.confirmed";
 
     private final ProcessedEventRepo processedEventRepo;
     private final InventoryReservationRepo reservationRepo;
@@ -79,6 +79,7 @@ public class InventoryConfirmationRequestedHandler {
 
         if (allConfirmed) {
             log.info("Checkout inventory already confirmed: {}", checkoutId);
+            publishConfirmed(checkoutId);
             return;
         }
 
@@ -139,24 +140,22 @@ public class InventoryConfirmationRequestedHandler {
             }
         }
 
-        // 9. Ghi inventory_movements nếu model hiện tại
-        //    của bạn đang ghi movement cho nghiệp vụ confirm.
-        //    Các INSERT này phải cùng transaction.
-
-        InventoryConfirmedPayload response = new InventoryConfirmedPayload(checkoutId);
-
-        outboxService.enqueueEvent(
-                "CHECKOUT",
-                checkoutId,
-                RESPONSE_EVENT_TYPE,
-                RESPONSE_TOPIC,
-                response
-        );
+        publishConfirmed(checkoutId);
 
         log.info(
                 "Inventory confirmed successfully checkoutId={}, itemCount={}",
                 checkoutId,
                 reservations.size()
+        );
+    }
+
+    private void publishConfirmed(UUID checkoutId) {
+        outboxService.enqueueEvent(
+                "CHECKOUT",
+                checkoutId,
+                EventTypes.INVENTORY_CONFIRMED,
+                EventTopics.INVENTORY_CONFIRMED,
+                new InventoryConfirmedPayload(checkoutId)
         );
     }
 

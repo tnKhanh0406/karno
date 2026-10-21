@@ -25,6 +25,7 @@ public class Shipment {
     private UUID shopId;
 
     private ShipmentStatus status;
+    private String trackingCode;
 
     private String shippingMethod;
 
@@ -33,6 +34,7 @@ public class Shipment {
 
     private String packagePayload;
 
+    private String pickupName;
     private String pickupPhone;
     private String pickupAddress;
     private BigDecimal pickupLatitude;

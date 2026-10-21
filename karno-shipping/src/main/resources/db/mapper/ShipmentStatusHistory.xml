@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.karnoshipping.repository.ShipmentStatusHistoryRepo">
+    <insert id="insertInitial">
+        INSERT INTO shipment_status_history (id, shipment_id, from_status, to_status, reason)
+        VALUES (#{id}, #{shipmentId}, NULL, #{status}, 'Shipment created')
+    </insert>
+</mapper>

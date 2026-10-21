@@ -70,4 +70,12 @@
         WHERE id = #{inventoryId}
         FOR UPDATE
     </select>
+
+    <update id="decreaseReserved">
+        UPDATE inventories
+        SET reserved_quantity = reserved_quantity - #{quantity},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{inventoryId}
+          AND reserved_quantity >= #{quantity}
+    </update>
 </mapper>
