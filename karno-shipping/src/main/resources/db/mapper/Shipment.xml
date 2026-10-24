@@ -3,15 +3,15 @@
 <mapper namespace="com.karnoshipping.repository.ShipmentRepo">
     <insert id="insert">
         INSERT INTO shipments (
-            id, order_id, checkout_id, customer_id, shop_id, status,
-            tracking_code, shipping_method, shipping_fee, total_weight_gram,
+            id, order_id, checkout_id, customer_id, shop_id, pickup_request_id, status,
+            tracking_code, shipping_method, shipping_fee, total_weight_gram, total_volume_m3,
             package_payload, pickup_name, pickup_phone, pickup_address,
             pickup_latitude, pickup_longitude, receiver_name, receiver_phone,
             receiver_address, receiver_latitude, receiver_longitude,
             estimated_delivery_at
         ) VALUES (
-            #{id}, #{orderId}, #{checkoutId}, #{customerId}, #{shopId}, #{status},
-            #{trackingCode}, #{shippingMethod}, #{shippingFee}, #{totalWeightGram},
+            #{id}, #{orderId}, #{checkoutId}, #{customerId}, #{shopId}, #{pickupRequestId}, #{status},
+            #{trackingCode}, #{shippingMethod}, #{shippingFee}, #{totalWeightGram}, #{totalVolumeM3},
             CAST(#{packagePayload} AS JSONB), #{pickupName}, #{pickupPhone}, #{pickupAddress},
             #{pickupLatitude}, #{pickupLongitude}, #{receiverName}, #{receiverPhone},
             #{receiverAddress}, #{receiverLatitude}, #{receiverLongitude},
@@ -20,8 +20,8 @@
     </insert>
 
     <select id="findByOrderId" resultType="com.karnoshipping.entity.Shipment">
-        SELECT id, order_id, checkout_id, customer_id, shop_id, status,
-               tracking_code, shipping_method, shipping_fee, total_weight_gram,
+        SELECT id, order_id, checkout_id, customer_id, shop_id, pickup_request_id, status,
+               tracking_code, shipping_method, shipping_fee, total_weight_gram, total_volume_m3,
                package_payload::TEXT AS package_payload, pickup_name, pickup_phone,
                pickup_address, pickup_latitude, pickup_longitude, receiver_name,
                receiver_phone, receiver_address, receiver_latitude,
@@ -30,4 +30,117 @@
         FROM shipments
         WHERE order_id = #{orderId}
     </select>
+
+    <update id="markReadyForPickup">
+        UPDATE shipments
+        SET status = 'READY_FOR_PICKUP', updated_at = CURRENT_TIMESTAMP
+        WHERE order_id = #{orderId}
+          AND shop_id = #{shopId}
+          AND status = 'CREATED'
+    </update>
+
+    <select id="findReadyForPickupByShopId" resultType="com.karnoshipping.entity.Shipment">
+        SELECT id, order_id, checkout_id, customer_id, shop_id, pickup_request_id, status,
+               tracking_code, shipping_method, shipping_fee, total_weight_gram, total_volume_m3,
+               package_payload::TEXT AS package_payload, pickup_name, pickup_phone,
+               pickup_address, pickup_latitude, pickup_longitude, receiver_name,
+               receiver_phone, receiver_address, receiver_latitude,
+               receiver_longitude, estimated_delivery_at, picked_up_at,
+               delivered_at, created_at, updated_at
+        FROM shipments
+        WHERE shop_id = #{shopId}
+          AND status = 'READY_FOR_PICKUP'
+        ORDER BY created_at ASC, id ASC
+    </select>
+
+    <select id="findByIdsForUpdate" resultType="com.karnoshipping.entity.Shipment">
+        SELECT id, order_id, checkout_id, customer_id, shop_id, pickup_request_id, status,
+               tracking_code, shipping_method, shipping_fee, total_weight_gram, total_volume_m3,
+               package_payload::TEXT AS package_payload, pickup_name, pickup_phone,
+               pickup_address, pickup_latitude, pickup_longitude, receiver_name,
+               receiver_phone, receiver_address, receiver_latitude, receiver_longitude,
+               estimated_delivery_at, picked_up_at, delivered_at, created_at, updated_at
+        FROM shipments
+        WHERE id IN
+        <foreach collection="shipmentIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ORDER BY id
+        FOR UPDATE
+    </select>
+
+    <select id="findByPickupRequestIdForUpdate" resultType="com.karnoshipping.entity.Shipment">
+        SELECT id, order_id, checkout_id, customer_id, shop_id, pickup_request_id, status,
+               tracking_code, shipping_method, shipping_fee, total_weight_gram, total_volume_m3,
+               package_payload::TEXT AS package_payload, pickup_name, pickup_phone,
+               pickup_address, pickup_latitude, pickup_longitude, receiver_name,
+               receiver_phone, receiver_address, receiver_latitude, receiver_longitude,
+               estimated_delivery_at, picked_up_at, delivered_at, created_at, updated_at
+        FROM shipments
+        WHERE pickup_request_id = #{pickupRequestId}
+        ORDER BY id
+        FOR UPDATE
+    </select>
+    <select id="findByPickupRequestId" resultType="com.karnoshipping.entity.Shipment">
+        SELECT id, order_id, pickup_request_id, status, tracking_code, total_weight_gram
+        FROM shipments
+        WHERE pickup_request_id = #{pickupRequestId}
+        ORDER BY created_at, id
+    </select>
+
+    <update id="assignToPickupRequest">
+        UPDATE shipments
+        SET status = 'PICKUP_REQUESTED', pickup_request_id = #{pickupRequestId},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE shop_id = #{shopId}
+          AND status = 'READY_FOR_PICKUP'
+          AND pickup_request_id IS NULL
+          AND id IN
+        <foreach collection="shipmentIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="releaseFromPickupRequest">
+        UPDATE shipments
+        SET status = 'READY_FOR_PICKUP', pickup_request_id = NULL,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE pickup_request_id = #{pickupRequestId}
+          AND status = 'PICKUP_REQUESTED'
+    </update>
+    <select id="findByPickupRequestIdsForUpdate" resultType="com.karnoshipping.entity.Shipment">
+        SELECT id, order_id, checkout_id, customer_id, shop_id, pickup_request_id, status,
+               tracking_code, shipping_method, shipping_fee, total_weight_gram, total_volume_m3
+        FROM shipments WHERE pickup_request_id IN
+        <foreach collection="pickupRequestIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+        ORDER BY id FOR UPDATE
+    </select>
+    <update id="markPickupPlanned">
+        UPDATE shipments SET status = 'PICKUP_PLANNED', updated_at = CURRENT_TIMESTAMP
+        WHERE status = 'PICKUP_REQUESTED' AND pickup_request_id IN
+        <foreach collection="pickupRequestIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+    </update>
+    <update id="revertPickupPlanned">
+        UPDATE shipments SET status = 'PICKUP_REQUESTED', updated_at = CURRENT_TIMESTAMP
+        WHERE status = 'PICKUP_PLANNED' AND pickup_request_id IN
+        <foreach collection="pickupRequestIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+    </update>
+    <update id="markPickedUp">
+        UPDATE shipments
+        SET status = 'PICKED_UP', picked_up_at = CURRENT_TIMESTAMP,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE pickup_request_id = #{pickupRequestId}
+          AND status = 'PICKUP_PLANNED'
+          AND id IN
+        <foreach collection="shipmentIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+    </update>
+    <update id="revertPickedUp">
+        UPDATE shipments
+        SET status = 'PICKUP_PLANNED', picked_up_at = NULL,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE pickup_request_id = #{pickupRequestId}
+          AND status = 'PICKED_UP'
+          AND id IN
+        <foreach collection="shipmentIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+    </update>
 </mapper>

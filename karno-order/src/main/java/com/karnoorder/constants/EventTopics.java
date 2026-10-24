@@ -7,4 +7,5 @@ public final class EventTopics {
     public static final String INVENTORY_CONFIRMATION_REQUESTED = "inventory.confirmation.requested";
     public static final String INVENTORY_RELEASE_REQUESTED = "inventory.release.requested";
     public static final String SHIPMENT_CREATION_REQUESTED = "shipping.shipment.creation.requested";
+    public static final String ORDER_PACKED = "order.packed";
 }

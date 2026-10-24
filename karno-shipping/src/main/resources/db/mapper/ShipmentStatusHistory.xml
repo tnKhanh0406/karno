@@ -5,4 +5,8 @@
         INSERT INTO shipment_status_history (id, shipment_id, from_status, to_status, reason)
         VALUES (#{id}, #{shipmentId}, NULL, #{status}, 'Shipment created')
     </insert>
+    <insert id="insertTransition">
+        INSERT INTO shipment_status_history (id, shipment_id, from_status, to_status, reason)
+        VALUES (#{id}, #{shipmentId}, #{fromStatus}, #{toStatus}, #{reason})
+    </insert>
 </mapper>

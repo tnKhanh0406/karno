@@ -2,6 +2,8 @@ package com.karnoshipping.messaging.handler;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.karnoshipping.constants.EventTopics;
+import com.karnoshipping.constants.EventTypes;
 import com.karnoshipping.entity.Shipment;
 import com.karnoshipping.enums.ShipmentStatus;
 import com.karnoshipping.messaging.model.EventEnvelope;
@@ -17,13 +19,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 import java.util.UUID;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Service
 @RequiredArgsConstructor
 public class ShipmentCreationRequestedHandler {
-    private static final String REQUEST_TYPE = "SHIPMENT_CREATION_REQUESTED";
     private static final String CONSUMER_NAME = "shipment-creation-requested-handler";
-    private static final String CREATED_TOPIC = "shipping.shipment.created";
 
     private final ProcessedEventRepo processedEventRepo;
     private final ShipmentRepo shipmentRepo;
@@ -38,7 +40,8 @@ public class ShipmentCreationRequestedHandler {
                 event.data(), ShipmentCreationRequestedPayload.class);
         validatePayload(event, payload);
 
-        if (processedEventRepo.insertIfAbsent(event.eventId(), CONSUMER_NAME, REQUEST_TYPE) == 0) {
+        if (processedEventRepo.insertIfAbsent(event.eventId(), CONSUMER_NAME,
+                EventTypes.SHIPMENT_CREATION_REQUESTED) == 0) {
             return;
         }
 
@@ -50,7 +53,8 @@ public class ShipmentCreationRequestedHandler {
         }
 
         outboxService.enqueue(
-                "SHIPMENT", shipment.getId(), "SHIPMENT_CREATED", CREATED_TOPIC,
+                "SHIPMENT", shipment.getId(), EventTypes.SHIPMENT_CREATED,
+                EventTopics.SHIPMENT_CREATED,
                 new ShipmentCreatedPayload(
                         shipment.getId(), shipment.getOrderId(), shipment.getCheckoutId(),
                         shipment.getTrackingCode(), shipment.getStatus().name(),
@@ -68,6 +72,7 @@ public class ShipmentCreationRequestedHandler {
                 .trackingCode("KARNO-" + shipmentId.toString().replace("-", "").toUpperCase())
                 .shippingMethod(payload.shippingMethod()).shippingFee(payload.shippingFee())
                 .totalWeightGram(payload.totalWeightGram())
+                .totalVolumeM3(calculateVolumeM3(payload))
                 .packagePayload(serializeItems(payload))
                 .pickupName(payload.pickup().name()).pickupPhone(payload.pickup().phone())
                 .pickupAddress(payload.pickup().address())
@@ -84,6 +89,17 @@ public class ShipmentCreationRequestedHandler {
         return shipment;
     }
 
+    private BigDecimal calculateVolumeM3(ShipmentCreationRequestedPayload payload) {
+        BigDecimal cubicCentimeters = payload.items().stream()
+                .filter(item -> item.lengthCm() != null && item.widthCm() != null
+                        && item.heightCm() != null && item.quantity() != null)
+                .map(item -> item.lengthCm().multiply(item.widthCm())
+                        .multiply(item.heightCm())
+                        .multiply(BigDecimal.valueOf(item.quantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return cubicCentimeters.divide(BigDecimal.valueOf(1_000_000), 6, RoundingMode.HALF_UP);
+    }
+
     private String serializeItems(ShipmentCreationRequestedPayload payload) {
         try {
             return objectMapper.writeValueAsString(payload.items());
@@ -94,7 +110,8 @@ public class ShipmentCreationRequestedHandler {
 
     private void validateEnvelope(EventEnvelope event) {
         if (event == null || event.eventId() == null || event.aggregateId() == null
-                || event.data() == null || !REQUEST_TYPE.equals(event.eventType())) {
+                || event.data() == null
+                || !EventTypes.SHIPMENT_CREATION_REQUESTED.equals(event.eventType())) {
             throw new IllegalArgumentException("Invalid shipment creation event");
         }
     }

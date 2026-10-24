@@ -2,6 +2,7 @@ package com.karnouser.repository;
 
 import com.karnouser.dto.response.ShopInformationResponse;
 import com.karnouser.dto.response.ShopLocationResponse;
+import com.karnouser.dto.response.ShopPickupContextResponse;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -14,4 +15,5 @@ public interface ShopRepo {
     ShopInformationResponse findShopInformationById(@Param("shopId") UUID shopId);
     List<ShopInformationResponse> findShopInformationByIds(@Param("shopIds") List<UUID> shopIds);
     List<ShopLocationResponse> findShopLocationsByIds(@Param("shopIds") Set<UUID> shopIds);
+    ShopPickupContextResponse findPickupContextById(@Param("shopId") UUID shopId);
 }

@@ -14,4 +14,22 @@ public interface PickupRequestRepo {
             @Param("hubId") UUID hubId,
             @Param("status") PickupRequestStatus status
     );
+    int insert(PickupRequest request);
+    PickupRequest findById(@Param("id") UUID id);
+    List<PickupRequest> findByShopId(@Param("shopId") UUID shopId);
+    int updateOpen(PickupRequest request);
+    int cancelOpen(@Param("id") UUID id, @Param("sellerId") UUID sellerId);
+    int insertShipment(@Param("pickupRequestId") UUID pickupRequestId,
+                       @Param("shipmentId") UUID shipmentId);
+    int deleteShipments(@Param("pickupRequestId") UUID pickupRequestId);
+    List<UUID> findShipmentIds(@Param("pickupRequestId") UUID pickupRequestId);
+    List<PickupRequest> findOpenByHubAndZone(@Param("hubId") UUID hubId,
+                                             @Param("zoneId") UUID zoneId);
+    int claimOpenByHubAndZone(@Param("hubId") UUID hubId, @Param("zoneId") UUID zoneId,
+                              @Param("sessionId") UUID sessionId,
+                              @Param("shipperId") UUID shipperId);
+    List<UUID> findIdsBySession(@Param("sessionId") UUID sessionId);
+    int revertSession(@Param("sessionId") UUID sessionId);
+    int markPickedUp(@Param("id") UUID id, @Param("shipperId") UUID shipperId,
+                     @Param("sessionId") UUID sessionId);
 }

@@ -3,6 +3,7 @@ package com.karnouser.controller.internal;
 import com.karnouser.dto.request.UUIDListRequest;
 import com.karnouser.dto.response.ShopInformationResponse;
 import com.karnouser.dto.response.ShopLocationResponse;
+import com.karnouser.dto.response.ShopPickupContextResponse;
 import com.karnouser.service.ShopService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,11 @@ public class ShopInternalController {
     @GetMapping("/{shopId}")
     public ShopInformationResponse getShopInformation(@PathVariable UUID shopId) {
         return shopService.getShopInformation(shopId);
+    }
+
+    @GetMapping("/{shopId}/pickup-context")
+    public ShopPickupContextResponse getPickupContext(@PathVariable UUID shopId) {
+        return shopService.getPickupContext(shopId);
     }
 
     @PostMapping("/batch")

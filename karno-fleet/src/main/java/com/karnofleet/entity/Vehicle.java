@@ -19,6 +19,9 @@ public class Vehicle {
     private BigDecimal capacityWeight;
     private BigDecimal capacityVolume;
     private VehicleStatus status;
+    private String ownershipType;
+    private UUID ownerShipperId;
+    private UUID hubId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

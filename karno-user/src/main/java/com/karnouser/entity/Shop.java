@@ -17,6 +17,8 @@ import java.util.UUID;
 public class Shop {
     private UUID id;
     private UUID ownerId;
+    private UUID originHubId;
+    private UUID pickupZoneId;
     private String name;
     private String description;
     private String logoUrl;

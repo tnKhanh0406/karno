@@ -9,4 +9,8 @@ import java.util.UUID;
 public interface ShipmentStatusHistoryRepo {
     int insertInitial(@Param("id") UUID id, @Param("shipmentId") UUID shipmentId,
                       @Param("status") String status);
+    int insertTransition(@Param("id") UUID id, @Param("shipmentId") UUID shipmentId,
+                         @Param("fromStatus") String fromStatus,
+                         @Param("toStatus") String toStatus,
+                         @Param("reason") String reason);
 }

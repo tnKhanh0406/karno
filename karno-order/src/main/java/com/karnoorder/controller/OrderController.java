@@ -1,8 +1,10 @@
 package com.karnoorder.controller;
 
 import com.karnoorder.dto.request.CreateOrderRequest;
+import com.karnoorder.dto.request.PackOrderRequest;
 import com.karnoorder.dto.response.CheckoutStartResponse;
 import com.karnoorder.dto.response.CheckoutStatusResponse;
+import com.karnoorder.dto.response.PackOrderResponse;
 import com.karnoorder.service.OrderApplicationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -44,5 +46,13 @@ public class OrderController {
             @PathVariable UUID customerId
     ) {
         return orderApplicationService.getCheckoutStatus(customerId, checkoutId);
+    }
+
+    @PatchMapping("/{orderId}/pack")
+    public PackOrderResponse packOrder(
+            @PathVariable UUID orderId,
+            @Valid @RequestBody PackOrderRequest request
+    ) {
+        return orderApplicationService.packOrder(orderId, request);
     }
 }

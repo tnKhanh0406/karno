@@ -11,6 +11,9 @@
         <result property="capacityWeight" column="capacity_weight" />
         <result property="capacityVolume" column="capacity_volume" />
         <result property="status" column="status" />
+        <result property="ownershipType" column="ownership_type" />
+        <result property="ownerShipperId" column="owner_shipper_id" />
+        <result property="hubId" column="hub_id" />
         <result property="createdAt" column="created_at" />
         <result property="updatedAt" column="updated_at" />
     </resultMap>
@@ -44,5 +47,22 @@
         WHERE status = #{status}
         ORDER BY vehicle_code ASC
     </select>
+    <select id="findAvailableForShipper" resultMap="VehicleResultMap">
+        SELECT * FROM vehicle
+        WHERE status = 'AVAILABLE'
+          AND ((ownership_type = 'SHIPPER' AND owner_shipper_id = #{shipperId})
+            OR (ownership_type = 'HUB' AND hub_id = #{hubId}))
+        ORDER BY vehicle_code
+    </select>
+    <update id="acquire">
+        UPDATE vehicle SET status = 'IN_USE', updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{vehicleId} AND status = 'AVAILABLE'
+          AND ((ownership_type = 'SHIPPER' AND owner_shipper_id = #{shipperId})
+            OR (ownership_type = 'HUB' AND hub_id = #{hubId}))
+    </update>
+    <update id="release">
+        UPDATE vehicle SET status = 'AVAILABLE', updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{vehicleId} AND status = 'IN_USE'
+    </update>
 
 </mapper>

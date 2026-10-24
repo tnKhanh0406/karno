@@ -23,6 +23,7 @@ public class Shipment {
 
     private UUID customerId;
     private UUID shopId;
+    private UUID pickupRequestId;
 
     private ShipmentStatus status;
     private String trackingCode;
@@ -31,6 +32,7 @@ public class Shipment {
 
     private BigDecimal shippingFee;
     private Integer totalWeightGram;
+    private BigDecimal totalVolumeM3;
 
     private String packagePayload;
 

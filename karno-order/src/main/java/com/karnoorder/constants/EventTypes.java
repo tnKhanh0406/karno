@@ -12,4 +12,5 @@ public final class EventTypes {
     public static final String INVENTORY_CONFIRMED = "INVENTORY_CONFIRMED";
     public static final String INVENTORY_RELEASE_REQUESTED = "INVENTORY_RELEASE_REQUESTED";
     public static final String SHIPMENT_CREATION_REQUESTED = "SHIPMENT_CREATION_REQUESTED";
+    public static final String ORDER_PACKED = "ORDER_PACKED";
 }

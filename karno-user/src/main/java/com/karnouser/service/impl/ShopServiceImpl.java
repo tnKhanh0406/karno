@@ -1,6 +1,7 @@
 package com.karnouser.service.impl;
 
 import com.karnouser.dto.response.ShopInformationResponse;
+import com.karnouser.dto.response.ShopPickupContextResponse;
 import com.karnouser.dto.response.ShopLocationResponse;
 import com.karnouser.exception.NotFoundException;
 import com.karnouser.repository.ShopRepo;
@@ -40,5 +41,14 @@ public class ShopServiceImpl implements ShopService {
             return List.of();
         }
         return shopRepo.findShopLocationsByIds(shopIds);
+    }
+
+    @Override
+    public ShopPickupContextResponse getPickupContext(UUID shopId) {
+        ShopPickupContextResponse context = shopRepo.findPickupContextById(shopId);
+        if (context == null) {
+            throw new NotFoundException("Shop not found: " + shopId);
+        }
+        return context;
     }
 }

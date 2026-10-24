@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.karnofleet.repository.FirstMileSessionRepo">
+    <select id="findActiveZoneByShipper" resultType="com.karnofleet.entity.ServiceZone">
+        SELECT z.* FROM service_zone z
+        JOIN shipper_zone_assignment a ON a.zone_id = z.id
+        WHERE a.shipper_id = #{shipperId} AND a.active = TRUE AND z.status = 'ACTIVE'
+    </select>
+    <select id="findActiveByShipper" resultType="com.karnofleet.entity.PickupSession">
+        SELECT * FROM pickup_session WHERE shipper_id = #{shipperId} AND status = 'ACTIVE'
+    </select>
+    <insert id="insert">
+        INSERT INTO pickup_session (
+            id, shipper_id, hub_id, zone_id, vehicle_id, start_latitude,
+            start_longitude, planned_start_at, desired_return_at, status,
+            route_plan
+        ) VALUES (
+            #{id}, #{shipperId}, #{hubId}, #{zoneId}, #{vehicleId}, #{startLatitude},
+            #{startLongitude}, #{plannedStartAt}, #{desiredReturnAt}, #{status},
+            CAST(#{routePlan} AS JSONB)
+        )
+    </insert>
+</mapper>

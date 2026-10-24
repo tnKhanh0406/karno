@@ -13,4 +13,13 @@ public interface OrderStatusHistoryRepo {
             @Param("orderId") UUID orderId,
             @Param("status") String status
     );
+
+    int insertTransition(
+            @Param("id") UUID id,
+            @Param("orderId") UUID orderId,
+            @Param("fromStatus") String fromStatus,
+            @Param("toStatus") String toStatus,
+            @Param("actorId") UUID actorId,
+            @Param("description") String description
+    );
 }

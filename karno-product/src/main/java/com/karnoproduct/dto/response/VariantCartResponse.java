@@ -1,7 +1,5 @@
 package com.karnoproduct.dto.response;
 
-import com.karnoproduct.enums.ProductStatus;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;

@@ -1,6 +1,7 @@
 package com.karnouser.service;
 
 import com.karnouser.dto.response.ShopInformationResponse;
+import com.karnouser.dto.response.ShopPickupContextResponse;
 import com.karnouser.dto.response.ShopLocationResponse;
 
 import java.util.List;
@@ -11,4 +12,5 @@ public interface ShopService {
     ShopInformationResponse getShopInformation(UUID shopId);
     List<ShopInformationResponse> getShopsByIds(List<UUID> shopIds);
     List<ShopLocationResponse> getPickupLocations(Set<UUID> shopIds);
+    ShopPickupContextResponse getPickupContext(UUID shopId);
 }

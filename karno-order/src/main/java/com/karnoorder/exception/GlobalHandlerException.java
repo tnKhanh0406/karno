@@ -7,6 +7,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalHandlerException {
+    @ExceptionHandler(CheckoutException.class)
+    public ResponseEntity<ErrorResponse> handleCheckout(CheckoutException ex) {
+        return ResponseEntity
+                .status(ex.getStatus())
+                .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
+    }
+
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<String> handleBadRequest(BadRequestException ex) {
         return ResponseEntity
@@ -27,4 +34,6 @@ public class GlobalHandlerException {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ex.getMessage());
     }
+
+    public record ErrorResponse(String code, String message) {}
 }

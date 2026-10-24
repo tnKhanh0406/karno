@@ -52,4 +52,14 @@
             #{shopId}
         </foreach>
     </select>
+
+    <select id="findPickupContextById" resultType="com.karnouser.dto.response.ShopPickupContextResponse">
+        SELECT s.id AS shop_id, s.owner_id, s.origin_hub_id, s.pickup_zone_id,
+               s.name AS shop_name, u.phone AS pickup_phone,
+               s.address AS pickup_address, s.latitude AS pickup_latitude,
+               s.longitude AS pickup_longitude
+        FROM shops s
+        JOIN users u ON u.id = s.owner_id
+        WHERE s.id = #{shopId} AND s.status = 'ACTIVE'
+    </select>
 </mapper>

@@ -2,24 +2,24 @@ package com.karnofleet.service.impl;
 
 import com.karnofleet.component.*;
 import com.karnofleet.dto.request.GeoPoint;
-import com.karnofleet.dto.request.LocationRequest;
+import com.karnofleet.dto.request.FirstMilePlanRequest;
 import com.karnofleet.dto.request.PickupStopInput;
 import com.karnofleet.dto.request.PlanningRequest;
-import com.karnofleet.dto.response.FirstMileContext;
+import com.karnofleet.entity.ServiceZone;
+import com.karnofleet.entity.Vehicle;
 import com.karnofleet.dto.response.FirstMilePreviewResponse;
 import com.karnofleet.dto.response.PlanningResult;
 import com.karnofleet.dto.response.RouteGeometryResponse;
 import com.karnofleet.entity.PickupRequest;
-import com.karnofleet.enums.PickupRequestStatus;
 import com.karnofleet.repository.PickupRequestRepo;
-import com.karnofleet.service.FirstMileContextService;
+import com.karnofleet.repository.FirstMileSessionRepo;
+import com.karnofleet.repository.VehicleRepo;
 import com.karnofleet.service.FirstMilePlanningService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -31,28 +31,33 @@ import java.util.UUID;
 @Slf4j
 public class FirstMilePlanningServiceImpl implements FirstMilePlanningService {
 
-    private final FirstMileContextService contextService;
+    private final FirstMileSessionRepo sessionRepo;
+    private final VehicleRepo vehicleRepo;
     private final PickupRequestRepo pickupRequestRepo;
     private final CheapestFeasibleInsertionPlanner planner;
     private final TravelTimeMatrixLoader matrixLoader;
     private final RouteGeometryProvider routeGeometryProvider;
     private final FirstMileResponseMapper mapper;
-    private final Clock clock;
 
     @Override
-    public FirstMilePreviewResponse preview(UUID shipperUserId, LocationRequest request) {
-        LocalDateTime plannedAt = LocalDateTime.now(clock);
-
-        FirstMileContext context = contextService.getContext(shipperUserId, plannedAt);
-
-        List<PickupRequest> pickupRequests = pickupRequestRepo.findPlanningCandidates(context.hub().id(), PickupRequestStatus.WAITING_PLANNING);
+    public FirstMilePreviewResponse preview(UUID shipperUserId, FirstMilePlanRequest request) {
+        if (!request.plannedStartAt().isBefore(request.desiredReturnAt())) {
+            throw new IllegalArgumentException("plannedStartAt must be before desiredReturnAt");
+        }
+        ServiceZone zone = sessionRepo.findActiveZoneByShipper(shipperUserId);
+        if (zone == null) throw new IllegalStateException("Shipper has no active zone");
+        Vehicle vehicle = vehicleRepo.findAvailableForShipper(shipperUserId, zone.getHubId()).stream()
+                .filter(v -> v.getId().equals(request.vehicleId())).findFirst()
+                .orElseThrow(() -> new IllegalStateException("Vehicle is not available to shipper"));
+        LocalDateTime plannedAt = request.plannedStartAt();
+        List<PickupRequest> pickupRequests = pickupRequestRepo.findOpenByHubAndZone(zone.getHubId(), zone.getId());
 
         List<PickupStopInput> stops = pickupRequests.stream()
                         .map(this::toStop)
                         .toList();
 
         GeoPoint start = new GeoPoint(request.latitude(), request.longitude());
-        GeoPoint hub = new GeoPoint(context.hub().latitude(), context.hub().longitude());
+        GeoPoint hub = new GeoPoint(zone.getHubLatitude(), zone.getHubLongitude());
 
         List<GeoPoint> matrixPoints = buildMatrixPoints(
                 start,
@@ -77,9 +82,9 @@ public class FirstMilePlanningServiceImpl implements FirstMilePlanningService {
                         .startLocation(start)
                         .plannedStartAt(plannedAt)
                         .hubLocation(hub)
-                        .shiftEndAt(context.shiftEndsAt())
-                        .capacityWeight(context.vehicle().getCapacityWeight())
-                        .capacityVolume(context.vehicle().getCapacityVolume())
+                        .shiftEndAt(request.desiredReturnAt())
+                        .capacityWeight(vehicle.getCapacityWeight())
+                        .capacityVolume(vehicle.getCapacityVolume())
                         .initialWeight(BigDecimal.ZERO)
                         .initialVolume(BigDecimal.ZERO)
                         .pickupRequests(stops)
