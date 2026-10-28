@@ -20,7 +20,7 @@ spring:
         - id: karno-product-route
           uri: http://karno-product-service:80
           predicates:
-            - Path=/api/products/**
+            - Path=/api/products/**,/api/product-reviews/**,/api/categories/**
 
 management:
   endpoints:

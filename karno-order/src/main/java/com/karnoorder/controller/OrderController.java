@@ -1,11 +1,15 @@
 package com.karnoorder.controller;
 
 import com.karnoorder.dto.request.CreateOrderRequest;
+import com.karnoorder.dto.request.CustomerOrderSearchRequest;
 import com.karnoorder.dto.request.PackOrderRequest;
 import com.karnoorder.dto.response.CheckoutStartResponse;
 import com.karnoorder.dto.response.CheckoutStatusResponse;
 import com.karnoorder.dto.response.PackOrderResponse;
+import com.karnoorder.dto.response.CustomerOrderResponse;
+import com.karnoorder.dto.response.PageResponse;
 import com.karnoorder.service.OrderApplicationService;
+import com.karnoorder.service.OrderQueryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +24,15 @@ import java.util.UUID;
 public class OrderController {
 
     private final OrderApplicationService orderApplicationService;
+    private final OrderQueryService orderQueryService;
+
+    @GetMapping("/customers/{customerId}")
+    public PageResponse<CustomerOrderResponse> getCustomerOrders(
+            @PathVariable UUID customerId,
+            @ModelAttribute CustomerOrderSearchRequest request
+    ) {
+        return orderQueryService.getCustomerOrders(customerId, request);
+    }
 
     @PostMapping("/{customerId}")
     public ResponseEntity<CheckoutStartResponse> createOrder(

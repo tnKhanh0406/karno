@@ -1,9 +1,12 @@
 package com.karnoinventory.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+
 import java.util.List;
 import java.util.UUID;
 
 public record InventoryAvailabilityRequest(
-        List<UUID> UUIDs
+        @JsonAlias("UUIDs")
+        List<UUID> variantIds
 ) {
 }

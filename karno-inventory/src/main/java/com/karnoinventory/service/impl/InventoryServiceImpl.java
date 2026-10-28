@@ -17,6 +17,9 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     public List<VariantInventoryResponse> getAvailabilityByVariantIds(InventoryAvailabilityRequest request) {
-        return inventoryRepo.getAvailabilityByVariantIds(request.UUIDs());
+        if (request == null || request.variantIds() == null || request.variantIds().isEmpty()) {
+            return List.of();
+        }
+        return inventoryRepo.getAvailabilityByVariantIds(request.variantIds());
     }
 }
