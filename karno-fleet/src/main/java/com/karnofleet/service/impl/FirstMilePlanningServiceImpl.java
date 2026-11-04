@@ -11,6 +11,7 @@ import com.karnofleet.dto.response.FirstMilePreviewResponse;
 import com.karnofleet.dto.response.PlanningResult;
 import com.karnofleet.dto.response.RouteGeometryResponse;
 import com.karnofleet.entity.PickupRequest;
+import com.karnofleet.entity.PickupSession;
 import com.karnofleet.repository.PickupRequestRepo;
 import com.karnofleet.repository.FirstMileSessionRepo;
 import com.karnofleet.repository.VehicleRepo;
@@ -41,16 +42,42 @@ public class FirstMilePlanningServiceImpl implements FirstMilePlanningService {
 
     @Override
     public FirstMilePreviewResponse preview(UUID shipperUserId, FirstMilePlanRequest request) {
+        return buildPreview(shipperUserId, request, null);
+    }
+
+    @Override
+    public FirstMilePreviewResponse previewSession(UUID shipperUserId, UUID sessionId,
+                                                   FirstMilePlanRequest request) {
+        return buildPreview(shipperUserId, request, sessionId);
+    }
+
+    private FirstMilePreviewResponse buildPreview(UUID shipperUserId, FirstMilePlanRequest request,
+                                                  UUID sessionId) {
         if (!request.plannedStartAt().isBefore(request.desiredReturnAt())) {
             throw new IllegalArgumentException("plannedStartAt must be before desiredReturnAt");
         }
         ServiceZone zone = sessionRepo.findActiveZoneByShipper(shipperUserId);
         if (zone == null) throw new IllegalStateException("Shipper has no active zone");
-        Vehicle vehicle = vehicleRepo.findAvailableForShipper(shipperUserId, zone.getHubId()).stream()
-                .filter(v -> v.getId().equals(request.vehicleId())).findFirst()
-                .orElseThrow(() -> new IllegalStateException("Vehicle is not available to shipper"));
+        Vehicle vehicle;
+        List<PickupRequest> pickupRequests;
+        if (sessionId == null) {
+            vehicle = vehicleRepo.findAvailableForShipper(shipperUserId, zone.getHubId()).stream()
+                    .filter(v -> v.getId().equals(request.vehicleId())).findFirst()
+                    .orElseThrow(() -> new IllegalStateException("Vehicle is not available to shipper"));
+            pickupRequests = pickupRequestRepo.findOpenByHubAndZone(zone.getHubId(), zone.getId());
+        } else {
+            PickupSession session = sessionRepo.findActiveByShipper(shipperUserId);
+            if (session == null || !sessionId.equals(session.getId()) || !"ACTIVE".equals(session.getStatus())) {
+                throw new IllegalStateException("Pickup session is not active for this shipper");
+            }
+            if (!request.vehicleId().equals(session.getVehicleId())) {
+                throw new IllegalArgumentException("Replan must use the session vehicle");
+            }
+            vehicle = vehicleRepo.findUsableBySession(request.vehicleId(), shipperUserId, zone.getHubId())
+                    .orElseThrow(() -> new IllegalStateException("Session vehicle is not in use"));
+            pickupRequests = pickupRequestRepo.findRemainingBySession(sessionId);
+        }
         LocalDateTime plannedAt = request.plannedStartAt();
-        List<PickupRequest> pickupRequests = pickupRequestRepo.findOpenByHubAndZone(zone.getHubId(), zone.getId());
 
         List<PickupStopInput> stops = pickupRequests.stream()
                         .map(this::toStop)

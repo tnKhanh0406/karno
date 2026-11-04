@@ -27,4 +27,5 @@ public interface ShipmentRepo {
     int revertPickedUp(@Param("pickupRequestId") UUID pickupRequestId,
                        @Param("shipmentIds") List<UUID> shipmentIds);
     List<Shipment> findByPickupRequestId(@Param("pickupRequestId") UUID pickupRequestId);
+    int markAtOriginHub(@Param("pickupRequestIds") List<UUID> pickupRequestIds);
 }

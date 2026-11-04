@@ -143,4 +143,9 @@
           AND id IN
         <foreach collection="shipmentIds" item="id" open="(" separator="," close=")">#{id}</foreach>
     </update>
+    <update id="markAtOriginHub">
+        UPDATE shipments SET status = 'AT_ORIGIN_HUB', updated_at = CURRENT_TIMESTAMP
+        WHERE status = 'PICKED_UP' AND pickup_request_id IN
+        <foreach collection="pickupRequestIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+    </update>
 </mapper>

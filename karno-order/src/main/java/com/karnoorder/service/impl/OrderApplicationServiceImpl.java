@@ -114,11 +114,9 @@ public class OrderApplicationServiceImpl implements OrderApplicationService {
         if (order.getStatus() == OrderStatus.PACKED) {
             return new PackOrderResponse(orderId, OrderStatus.PACKED, true);
         }
-        if (order.getStatus() != OrderStatus.CONFIRMED
-                && order.getStatus() != OrderStatus.PREPARING
-                && order.getStatus() != OrderStatus.PENDING) {
+        if (order.getStatus() != OrderStatus.PENDING) {
             throw new CheckoutException(HttpStatus.CONFLICT, "ORDER_CANNOT_BE_PACKED",
-                    "Chỉ order CONFIRMED hoặc PREPARING mới có thể đóng gói");
+                    "Chỉ order PENDING mới có thể chuyển sang PACKED");
         }
 
         OrderStatus previousStatus = order.getStatus();

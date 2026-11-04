@@ -10,6 +10,7 @@ import java.util.UUID;
 
 public record PickupRequestResponse(
         UUID id, String requestCode, UUID shopId, UUID sellerId, String shopName,
+        String pickupAddress, BigDecimal pickupLatitude, BigDecimal pickupLongitude,
         UUID targetHubId, PickupRequestStatus status, BigDecimal totalWeight,
         BigDecimal totalVolume, LocalTime pickupWindowStart, LocalTime pickupWindowEnd,
         List<UUID> shipmentIds
@@ -17,6 +18,7 @@ public record PickupRequestResponse(
     public static PickupRequestResponse from(PickupRequest request, List<UUID> shipmentIds) {
         return new PickupRequestResponse(request.getId(), request.getRequestCode(),
                 request.getShopId(), request.getSellerId(), request.getShopName(),
+                request.getPickupAddress(), request.getPickupLatitude(), request.getPickupLongitude(),
                 request.getTargetHubId(), request.getStatus(), request.getTotalWeight(),
                 request.getTotalVolume(), request.getPickupWindowStart(),
                 request.getPickupWindowEnd(), shipmentIds);

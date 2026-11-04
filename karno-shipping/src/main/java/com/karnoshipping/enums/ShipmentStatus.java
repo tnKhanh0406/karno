@@ -7,6 +7,7 @@ public enum ShipmentStatus {
     PICKUP_PLANNED,
     ASSIGNED,
     PICKED_UP,
+    AT_ORIGIN_HUB,
     IN_TRANSIT,
     DELIVERED,
     FAILED,

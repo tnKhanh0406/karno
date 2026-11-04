@@ -8,4 +8,5 @@ import java.util.UUID;
 
 public interface OrderQueryService {
     PageResponse<CustomerOrderResponse> getCustomerOrders(UUID customerId, CustomerOrderSearchRequest request);
+    PageResponse<CustomerOrderResponse> getShopOrders(UUID shopId, CustomerOrderSearchRequest request);
 }

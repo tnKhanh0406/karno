@@ -112,6 +112,22 @@
         WHERE target_hub_id = #{hubId} AND pickup_zone_id = #{zoneId} AND status = 'OPEN'
         ORDER BY created_at, id
     </select>
+    <select id="findNewForSession" resultMap="PickupRequestResultMap">
+        SELECT pr.* FROM pickup_request pr
+        WHERE pr.target_hub_id = #{hubId} AND pr.pickup_zone_id = #{zoneId}
+          AND pr.status = 'OPEN'
+          AND NOT EXISTS (
+              SELECT 1 FROM pickup_session_deferred_request deferred
+              WHERE deferred.pickup_session_id = #{sessionId}
+                AND deferred.pickup_request_id = pr.id
+          )
+        ORDER BY pr.created_at, pr.id
+    </select>
+    <insert id="deferForSession">
+        INSERT INTO pickup_session_deferred_request (pickup_session_id, pickup_request_id)
+        VALUES (#{sessionId}, #{pickupRequestId})
+        ON CONFLICT DO NOTHING
+    </insert>
     <update id="claimOpenByHubAndZone">
         UPDATE pickup_request
         SET status = 'PLANNING', pickup_session_id = #{sessionId},
@@ -121,6 +137,30 @@
     <select id="findIdsBySession" resultType="java.util.UUID">
         SELECT id FROM pickup_request WHERE pickup_session_id = #{sessionId} ORDER BY created_at, id
     </select>
+    <select id="findBySession" resultMap="PickupRequestResultMap">
+        SELECT * FROM pickup_request WHERE pickup_session_id = #{sessionId}
+        ORDER BY created_at, id
+    </select>
+    <select id="findRemainingBySession" resultMap="PickupRequestResultMap">
+        SELECT * FROM pickup_request
+        WHERE pickup_session_id = #{sessionId} AND status = 'PLANNING'
+        ORDER BY created_at, id
+    </select>
+    <update id="claimOne">
+        UPDATE pickup_request
+        SET status = 'PLANNING', pickup_session_id = #{sessionId},
+            assigned_shipper_id = #{shipperId}, updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id} AND target_hub_id = #{hubId}
+          AND pickup_zone_id = #{zoneId} AND status = 'OPEN'
+    </update>
+    <select id="countPickedUpBySession" resultType="int">
+        SELECT COUNT(*) FROM pickup_request
+        WHERE pickup_session_id = #{sessionId} AND status = 'PICKED_UP'
+    </select>
+    <update id="markPickedUpAtOriginHub">
+        UPDATE pickup_request SET status = 'AT_ORIGIN_HUB', updated_at = CURRENT_TIMESTAMP
+        WHERE pickup_session_id = #{sessionId} AND status = 'PICKED_UP'
+    </update>
     <update id="revertSession">
         UPDATE pickup_request SET status = 'OPEN', pickup_session_id = NULL,
             assigned_shipper_id = NULL, updated_at = CURRENT_TIMESTAMP

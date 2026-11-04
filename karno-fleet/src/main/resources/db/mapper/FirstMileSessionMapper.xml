@@ -7,7 +7,12 @@
         WHERE a.shipper_id = #{shipperId} AND a.active = TRUE AND z.status = 'ACTIVE'
     </select>
     <select id="findActiveByShipper" resultType="com.karnofleet.entity.PickupSession">
-        SELECT * FROM pickup_session WHERE shipper_id = #{shipperId} AND status = 'ACTIVE'
+        SELECT * FROM pickup_session
+        WHERE shipper_id = #{shipperId} AND status IN ('ACTIVE', 'COMPLETING')
+        ORDER BY started_at DESC LIMIT 1
+    </select>
+    <select id="findByIdForUpdate" resultType="com.karnofleet.entity.PickupSession">
+        SELECT * FROM pickup_session WHERE id = #{id} FOR UPDATE
     </select>
     <insert id="insert">
         INSERT INTO pickup_session (
@@ -20,4 +25,20 @@
             CAST(#{routePlan} AS JSONB)
         )
     </insert>
+    <update id="updateRoutePlan">
+        UPDATE pickup_session SET route_plan = CAST(#{routePlan} AS JSONB)
+        WHERE id = #{id} AND status = 'ACTIVE'
+    </update>
+    <update id="markCompleting">
+        UPDATE pickup_session SET status = 'COMPLETING'
+        WHERE id = #{id} AND shipper_id = #{shipperId} AND status = 'ACTIVE'
+    </update>
+    <update id="markCompleted">
+        UPDATE pickup_session SET status = 'COMPLETED', completed_at = CURRENT_TIMESTAMP
+        WHERE id = #{id} AND status IN ('ACTIVE', 'COMPLETING')
+    </update>
+    <update id="markCancelled">
+        UPDATE pickup_session SET status = 'CANCELLED', completed_at = CURRENT_TIMESTAMP
+        WHERE id = #{id} AND status = 'ACTIVE'
+    </update>
 </mapper>

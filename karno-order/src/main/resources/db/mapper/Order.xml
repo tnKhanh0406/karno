@@ -70,7 +70,7 @@
         SET status = 'PACKED', updated_at = CURRENT_TIMESTAMP
         WHERE id = #{orderId}
           AND shop_id = #{shopId}
-          AND status IN ('CONFIRMED', 'PREPARING')
+          AND status = 'PENDING'
     </update>
 
     <sql id="customerOrderFilters">
@@ -99,6 +99,36 @@
         FROM orders o
         LEFT JOIN order_items oi ON oi.order_id = o.id
         <include refid="customerOrderFilters" />
+        GROUP BY o.id
+        ORDER BY o.created_at DESC, o.id DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <sql id="shopOrderFilters">
+        WHERE o.shop_id = #{shopId}
+        <if test="status != null">AND o.status = #{status}</if>
+        <if test="keyword != null">
+            AND EXISTS (
+                SELECT 1 FROM order_items oi_search
+                WHERE oi_search.order_id = o.id
+                  AND oi_search.product_name ILIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+    </sql>
+
+    <select id="countShopOrders" resultType="long">
+        SELECT COUNT(*) FROM orders o
+        <include refid="shopOrderFilters" />
+    </select>
+
+    <select id="findShopOrders" resultType="com.karnoorder.repository.projection.CustomerOrderProjection">
+        SELECT o.id, o.checkout_id, o.shop_id, o.shop_name, o.status,
+               o.subtotal, o.shipping_fee, o.total_amount, o.payment_method,
+               o.payment_status, o.created_at,
+               COALESCE(SUM(oi.quantity), 0)::int AS total_items
+        FROM orders o
+        LEFT JOIN order_items oi ON oi.order_id = o.id
+        <include refid="shopOrderFilters" />
         GROUP BY o.id
         ORDER BY o.created_at DESC, o.id DESC
         LIMIT #{limit} OFFSET #{offset}

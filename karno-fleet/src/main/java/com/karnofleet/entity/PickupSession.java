@@ -20,4 +20,6 @@ public class PickupSession {
     private LocalDateTime desiredReturnAt;
     private String status;
     private String routePlan;
+    private LocalDateTime startedAt;
+    private LocalDateTime completedAt;
 }

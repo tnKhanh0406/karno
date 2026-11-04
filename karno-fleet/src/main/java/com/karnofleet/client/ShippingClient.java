@@ -32,4 +32,6 @@ public interface ShippingClient {
     void revertPickup(@PathVariable UUID id, @RequestBody Map<String, List<UUID>> request);
     @GetMapping("/internal/shipments/pickup-requests/{id}/manifest")
     List<PickupManifestItem> manifest(@PathVariable UUID id);
+    @PostMapping("/internal/shipments/pickup-requests/session-completion")
+    void completeSession(@RequestBody Map<String, List<UUID>> request);
 }

@@ -49,3 +49,33 @@ export type CustomerOrderPage = {
   totalElements: number;
   totalPages: number;
 };
+
+export type ReadyShipment = {
+  shipmentId: string;
+  orderId: string;
+  shopId: string;
+  status: 'READY_FOR_PICKUP';
+  trackingCode: string;
+  shippingMethod: string;
+  totalWeightGram: number;
+  pickupName: string;
+  pickupPhone: string;
+  pickupAddress: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PickupRequest = {
+  id: string;
+  requestCode: string;
+  shopId: string;
+  sellerId: string;
+  shopName: string;
+  targetHubId: string;
+  status: 'OPEN' | 'PLANNING' | 'PICKED_UP' | 'CANCELLED';
+  totalWeight: number;
+  totalVolume: number;
+  pickupWindowStart: string;
+  pickupWindowEnd: string;
+  shipmentIds: string[];
+};

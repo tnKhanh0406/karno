@@ -4,4 +4,5 @@ import java.util.UUID;
 public record PickupSessionResponse(UUID sessionId, String status, UUID vehicleId,
                                     UUID hubId, UUID zoneId,
                                     List<UUID> claimedPickupRequestIds,
-                                    FirstMilePreviewResponse routePreview) {}
+                                    FirstMilePreviewResponse routePreview,
+                                    List<SessionPickupRequestResponse> pickupRequests) {}

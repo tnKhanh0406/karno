@@ -34,6 +34,14 @@ public class OrderController {
         return orderQueryService.getCustomerOrders(customerId, request);
     }
 
+    @GetMapping("/shops/{shopId}")
+    public PageResponse<CustomerOrderResponse> getShopOrders(
+            @PathVariable UUID shopId,
+            @ModelAttribute CustomerOrderSearchRequest request
+    ) {
+        return orderQueryService.getShopOrders(shopId, request);
+    }
+
     @PostMapping("/{customerId}")
     public ResponseEntity<CheckoutStartResponse> createOrder(
             @RequestHeader("Idempotency-Key") String idempotencyKey,

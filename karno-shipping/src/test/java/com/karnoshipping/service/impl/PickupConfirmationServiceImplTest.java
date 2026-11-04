@@ -37,4 +37,50 @@ class PickupConfirmationServiceImplTest {
         verify(history, times(2)).insertTransition(
                 any(), any(), eq("PICKUP_PLANNED"), eq("PICKED_UP"), anyString());
     }
+
+    @Test
+    void completeSessionMovesPickedToHubAndReleasesUnpicked() {
+        ShipmentRepo repo = mock(ShipmentRepo.class);
+        ShipmentStatusHistoryRepo history = mock(ShipmentStatusHistoryRepo.class);
+        PickupConfirmationServiceImpl service = new PickupConfirmationServiceImpl(repo, history);
+        UUID pickedRequest = UUID.randomUUID();
+        UUID unpickedRequest = UUID.randomUUID();
+        Shipment picked = Shipment.builder().id(UUID.randomUUID()).pickupRequestId(pickedRequest)
+                .status(ShipmentStatus.PICKED_UP).build();
+        Shipment unpicked = Shipment.builder().id(UUID.randomUUID()).pickupRequestId(unpickedRequest)
+                .status(ShipmentStatus.PICKUP_PLANNED).build();
+        when(repo.findByPickupRequestIdsForUpdate(List.of(pickedRequest)))
+                .thenReturn(List.of(picked));
+        when(repo.findByPickupRequestIdsForUpdate(List.of(unpickedRequest)))
+                .thenReturn(List.of(unpicked));
+        when(repo.markAtOriginHub(List.of(pickedRequest))).thenReturn(1);
+        when(repo.revertPickupPlanned(List.of(unpickedRequest))).thenReturn(1);
+        when(history.insertTransition(any(), any(), anyString(), anyString(), anyString()))
+                .thenReturn(1);
+
+        service.completeSession(List.of(pickedRequest), List.of(unpickedRequest));
+
+        verify(repo).markAtOriginHub(List.of(pickedRequest));
+        verify(repo).revertPickupPlanned(List.of(unpickedRequest));
+        verify(history).insertTransition(any(), eq(picked.getId()), eq("PICKED_UP"),
+                eq("AT_ORIGIN_HUB"), anyString());
+        verify(history).insertTransition(any(), eq(unpicked.getId()), eq("PICKUP_PLANNED"),
+                eq("PICKUP_REQUESTED"), anyString());
+    }
+
+    @Test
+    void completeSessionIsIdempotentWhenShippingAlreadyConverged() {
+        ShipmentRepo repo = mock(ShipmentRepo.class);
+        ShipmentStatusHistoryRepo history = mock(ShipmentStatusHistoryRepo.class);
+        PickupConfirmationServiceImpl service = new PickupConfirmationServiceImpl(repo, history);
+        UUID requestId = UUID.randomUUID();
+        when(repo.findByPickupRequestIdsForUpdate(List.of(requestId))).thenReturn(List.of(
+                Shipment.builder().id(UUID.randomUUID()).pickupRequestId(requestId)
+                        .status(ShipmentStatus.AT_ORIGIN_HUB).build()));
+
+        service.completeSession(List.of(requestId), List.of());
+
+        verify(repo).markAtOriginHub(List.of(requestId));
+        verifyNoInteractions(history);
+    }
 }

@@ -35,13 +35,29 @@ public class OrderQueryServiceImpl implements OrderQueryService {
         String keyword = normalizeKeyword(request.keyword());
 
         long totalElements = orderRepo.countCustomerOrders(customerId, request.status(), keyword);
+        return buildPage(request, page, size, keyword, totalElements,
+                orderRepo.findCustomerOrders(customerId, request.status(), keyword, size, page * size));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<CustomerOrderResponse> getShopOrders(UUID shopId, CustomerOrderSearchRequest request) {
+        int page = request.page() == null ? 0 : Math.max(request.page(), 0);
+        int size = request.size() == null ? DEFAULT_SIZE : Math.min(Math.max(request.size(), 1), MAX_SIZE);
+        String keyword = normalizeKeyword(request.keyword());
+        long totalElements = orderRepo.countShopOrders(shopId, request.status(), keyword);
+        return buildPage(request, page, size, keyword, totalElements,
+                orderRepo.findShopOrders(shopId, request.status(), keyword, size, page * size));
+    }
+
+    private PageResponse<CustomerOrderResponse> buildPage(CustomerOrderSearchRequest request,
+                                                           int page, int size, String keyword,
+                                                           long totalElements,
+                                                           List<CustomerOrderProjection> orders) {
         int totalPages = (int) Math.ceil((double) totalElements / size);
         if (totalElements == 0 || page >= totalPages) {
             return new PageResponse<>(List.of(), page, size, totalElements, totalPages);
         }
-
-        List<CustomerOrderProjection> orders = orderRepo.findCustomerOrders(
-                customerId, request.status(), keyword, size, page * size);
         List<UUID> orderIds = orders.stream().map(CustomerOrderProjection::getId).toList();
         Map<UUID, List<CustomerOrderItemResponse>> itemsByOrder = orderIds.isEmpty()
                 ? Collections.emptyMap()

@@ -5,5 +5,6 @@ public enum PickupRequestStatus {
     OPEN,
     PLANNING,
     PICKED_UP,
+    AT_ORIGIN_HUB,
     CANCELLED
 }

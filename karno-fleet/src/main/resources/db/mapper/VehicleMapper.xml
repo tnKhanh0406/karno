@@ -64,5 +64,11 @@
         UPDATE vehicle SET status = 'AVAILABLE', updated_at = CURRENT_TIMESTAMP
         WHERE id = #{vehicleId} AND status = 'IN_USE'
     </update>
+    <select id="findUsableBySession" resultMap="VehicleResultMap">
+        SELECT * FROM vehicle
+        WHERE id = #{vehicleId} AND status = 'IN_USE'
+          AND ((ownership_type = 'SHIPPER' AND owner_shipper_id = #{shipperId})
+            OR (ownership_type = 'HUB' AND hub_id = #{hubId}))
+    </select>
 
 </mapper>

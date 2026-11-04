@@ -32,6 +32,12 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Cho phép Karno sử dụng vị trí để lập tuyến và hỗ trợ shipper lấy hàng."
+        }
       ]
     ],
     "experiments": {

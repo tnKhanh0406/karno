@@ -59,6 +59,69 @@ public class PickupConfirmationServiceImpl implements PickupConfirmationService 
                 "Pickup confirmation was compensated"));
     }
 
+    @Override
+    @Transactional
+    public void completeSession(List<UUID> pickedUpPickupRequestIds,
+                                List<UUID> unpickedPickupRequestIds) {
+        List<UUID> picked = distinctAllowEmpty(pickedUpPickupRequestIds);
+        List<UUID> unpicked = distinctAllowEmpty(unpickedPickupRequestIds);
+        Set<UUID> overlap = new HashSet<>(picked);
+        overlap.retainAll(unpicked);
+        if (!overlap.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "A pickup request cannot be both picked up and unpicked");
+        }
+
+        if (!picked.isEmpty()) {
+            List<Shipment> shipments = shipmentRepo.findByPickupRequestIdsForUpdate(picked);
+            validateRequestCoverage(picked, shipments);
+            if (shipments.stream().anyMatch(s -> s.getStatus() != ShipmentStatus.PICKED_UP
+                    && s.getStatus() != ShipmentStatus.AT_ORIGIN_HUB)) {
+                throw conflict("Picked-up request contains shipment that cannot arrive at origin hub");
+            }
+            List<Shipment> changing = shipments.stream()
+                    .filter(s -> s.getStatus() == ShipmentStatus.PICKED_UP).toList();
+            if (shipmentRepo.markAtOriginHub(picked) != changing.size()) {
+                throw conflict("Shipment state changed during origin hub confirmation");
+            }
+            changing.forEach(s -> insertHistory(s.getId(), "PICKED_UP", "AT_ORIGIN_HUB",
+                    "First-mile session completed at origin hub"));
+        }
+
+        if (!unpicked.isEmpty()) {
+            List<Shipment> shipments = shipmentRepo.findByPickupRequestIdsForUpdate(unpicked);
+            validateRequestCoverage(unpicked, shipments);
+            if (shipments.stream().anyMatch(s -> s.getStatus() != ShipmentStatus.PICKUP_PLANNED
+                    && s.getStatus() != ShipmentStatus.PICKUP_REQUESTED)) {
+                throw conflict("Unpicked request contains shipment that cannot be released");
+            }
+            List<Shipment> changing = shipments.stream()
+                    .filter(s -> s.getStatus() == ShipmentStatus.PICKUP_PLANNED).toList();
+            if (shipmentRepo.revertPickupPlanned(unpicked) != changing.size()) {
+                throw conflict("Shipment state changed while releasing unpicked requests");
+            }
+            changing.forEach(s -> insertHistory(s.getId(), "PICKUP_PLANNED", "PICKUP_REQUESTED",
+                    "Unpicked request released when first-mile session completed"));
+        }
+    }
+
+    private void validateRequestCoverage(List<UUID> requestIds, List<Shipment> shipments) {
+        Set<UUID> found = shipments.stream().map(Shipment::getPickupRequestId)
+                .collect(java.util.stream.Collectors.toSet());
+        if (!found.containsAll(requestIds)) {
+            throw conflict("One or more pickup requests have no shipment data");
+        }
+    }
+
+    private List<UUID> distinctAllowEmpty(List<UUID> ids) {
+        if (ids == null || ids.stream().anyMatch(Objects::isNull)
+                || new HashSet<>(ids).size() != ids.size()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Pickup request ids must be unique and non-null");
+        }
+        return List.copyOf(ids);
+    }
+
     private void validateExactManifest(List<UUID> expectedIds, List<Shipment> shipments) {
         Set<UUID> actualIds = shipments.stream().map(Shipment::getId)
                 .collect(java.util.stream.Collectors.toSet());

@@ -23,4 +23,12 @@ public interface OrderRepo {
                                                      @Param("keyword") String keyword,
                                                      @Param("limit") int limit,
                                                      @Param("offset") int offset);
+    long countShopOrders(@Param("shopId") UUID shopId,
+                         @Param("status") OrderStatus status,
+                         @Param("keyword") String keyword);
+    List<CustomerOrderProjection> findShopOrders(@Param("shopId") UUID shopId,
+                                                 @Param("status") OrderStatus status,
+                                                 @Param("keyword") String keyword,
+                                                 @Param("limit") int limit,
+                                                 @Param("offset") int offset);
 }

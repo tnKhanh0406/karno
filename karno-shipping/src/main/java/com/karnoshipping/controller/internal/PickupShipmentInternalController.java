@@ -6,6 +6,7 @@ import com.karnoshipping.service.PickupShipmentAssignmentService;
 import com.karnoshipping.service.PickupPlanningService;
 import com.karnoshipping.dto.request.PickupPlanningRequest;
 import com.karnoshipping.dto.request.PickupConfirmationRequest;
+import com.karnoshipping.dto.request.PickupSessionCompletionRequest;
 import com.karnoshipping.service.PickupConfirmationService;
 import com.karnoshipping.dto.response.PickupManifestItemResponse;
 import com.karnoshipping.repository.ShipmentRepo;
@@ -70,5 +71,11 @@ public class PickupShipmentInternalController {
     public List<PickupManifestItemResponse> manifest(@PathVariable UUID pickupRequestId) {
         return shipmentRepo.findByPickupRequestId(pickupRequestId).stream()
                 .map(PickupManifestItemResponse::from).toList();
+    }
+
+    @PostMapping("/session-completion")
+    public void completeSession(@Valid @RequestBody PickupSessionCompletionRequest request) {
+        confirmationService.completeSession(request.pickedUpPickupRequestIds(),
+                request.unpickedPickupRequestIds());
     }
 }

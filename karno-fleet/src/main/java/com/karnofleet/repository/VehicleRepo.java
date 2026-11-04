@@ -23,4 +23,7 @@ public interface VehicleRepo {
     int acquire(@Param("vehicleId") UUID vehicleId, @Param("shipperId") UUID shipperId,
                 @Param("hubId") UUID hubId);
     int release(@Param("vehicleId") UUID vehicleId);
+    Optional<Vehicle> findUsableBySession(@Param("vehicleId") UUID vehicleId,
+                                          @Param("shipperId") UUID shipperId,
+                                          @Param("hubId") UUID hubId);
 }
