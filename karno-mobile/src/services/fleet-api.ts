@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 
-import type { FirstMilePreview, FirstMileRequest, NewPickupRequest, PickupConfirmation, PickupManifest, PickupSession, Vehicle } from '@/types/fleet';
+import type { FirstMilePreview, FirstMileRequest, LastMileLoad, LastMilePlan, NewPickupRequest, PickupConfirmation, PickupManifest, PickupSession, Vehicle } from '@/types/fleet';
 
 const fallbackHost = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
 const FLEET_API_URL = (process.env.EXPO_PUBLIC_FLEET_API_URL ?? `http://${fallbackHost}:8085`).replace(/\/$/, '');
@@ -84,6 +84,20 @@ export async function getPickupManifest(pickupRequestId: string): Promise<Pickup
 export async function confirmPickup(pickupRequestId: string): Promise<PickupConfirmation> {
   const shipperId = requireShipperId();
   return request(`/api/first-mile/pickup-requests/${encodeURIComponent(pickupRequestId)}/confirm-pickup?shipperId=${encodeURIComponent(shipperId)}`, { method: 'POST' });
+}
+
+export async function loadLastMileDemo(maxDiameterMeters = 200): Promise<LastMileLoad> {
+  const shipperId = requireShipperId();
+  return request(`/api/last-mile/load/demo?shipperUserId=${encodeURIComponent(shipperId)}&maxDiameterMeters=${maxDiameterMeters}`, {
+    method: 'POST',
+  });
+}
+
+export async function planLastMileDemo(plannedStartAt: string, maxDiameterMeters = 200): Promise<LastMilePlan> {
+  const shipperId = requireShipperId();
+  return request(`/api/last-mile/plan/demo?shipperUserId=${encodeURIComponent(shipperId)}&maxDiameterMeters=${maxDiameterMeters}&plannedStartAt=${encodeURIComponent(plannedStartAt)}`, {
+    method: 'POST',
+  });
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {

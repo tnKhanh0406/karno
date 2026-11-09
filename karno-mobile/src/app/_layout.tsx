@@ -15,6 +15,7 @@ export default function RootLayout() {
         <Stack.Screen name="products/[productId]" />
         <Stack.Screen name="cart" />
         <Stack.Screen name="checkout" />
+        <Stack.Screen name="last-mile" />
       </Stack>
     </ThemeProvider>
   );

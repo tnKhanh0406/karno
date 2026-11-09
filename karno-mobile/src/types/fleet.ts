@@ -106,3 +106,63 @@ export type PickupConfirmation = {
   shipmentIds: string[];
   alreadyPickedUp: boolean;
 };
+
+export type LastMileDeliveryMethod = 'EXPRESS' | 'STANDARD';
+export type LastMileDeliveryWindow = 'ADMIN' | 'OUTSIDE' | null;
+
+export type LastMileOrder = {
+  orderId: string;
+  deliveryMethod: LastMileDeliveryMethod;
+  deliveryWindow: LastMileDeliveryWindow;
+  location: GeoPoint;
+  weightKg: number;
+  volumeM3: number;
+  createdAt: string;
+};
+
+export type LastMileCluster = {
+  clusterId: string;
+  deliveryMethod: LastMileDeliveryMethod;
+  deliveryWindow: LastMileDeliveryWindow;
+  location: GeoPoint;
+  totalWeight: number;
+  totalVolume: number;
+  orders: LastMileOrder[];
+};
+
+export type LastMileLoad = {
+  capacityWeight: number;
+  capacityVolume: number;
+  totalWeight: number;
+  totalVolume: number;
+  clusters: LastMileCluster[];
+};
+
+export type LastMilePlannedCluster = LastMileCluster & {
+  sequence: number;
+  arrivalAt: string;
+  serviceStartAt: string;
+  departureAt: string;
+};
+
+export type LastMilePlan = {
+  capacityWeight: number;
+  capacityVolume: number;
+  totalWeight: number;
+  totalVolume: number;
+  feasible: boolean;
+  returnToHubAt: string;
+  geometry: {
+    encodedPolyline: string;
+    polylineFormat: 'OSRM' | 'HERE_FLEXIBLE';
+    distanceMeters: number;
+    travelDuration: string;
+  };
+  selectedClusters: LastMilePlannedCluster[];
+  unassignedClusters: {
+    clusterId: string;
+    reason: string;
+    location: GeoPoint;
+    orders: LastMileOrder[];
+  }[];
+};

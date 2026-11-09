@@ -1,5 +1,6 @@
 import * as Location from 'expo-location';
 import { StatusBar } from 'expo-status-bar';
+import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
@@ -390,7 +391,7 @@ export default function ShipperFirstMileScreen() {
     <View style={styles.screen}>
       <StatusBar style="light" />
       <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
-        <View style={styles.header}><View><Text style={styles.title}>First Mile</Text><Text style={styles.subtitle}>{session ? 'Đang trong phiên lấy hàng' : 'Lập tuyến lấy hàng đề xuất'}</Text></View><View style={[styles.liveBadge, !!coordinate && styles.liveBadgeActive]}><View style={styles.liveDot} /><Text style={styles.liveText}>{coordinate ? 'GPS' : 'Mất GPS'}</Text></View></View>
+        <View style={styles.header}><View><Text style={styles.title}>First Mile</Text><Text style={styles.subtitle}>{session ? 'Đang trong phiên lấy hàng' : 'Lập tuyến lấy hàng đề xuất'}</Text></View><View style={styles.headerActions}><Pressable onPress={() => router.push('/last-mile')} style={styles.lastMileLink}><Text style={styles.lastMileLinkText}>Last mile →</Text></Pressable><View style={[styles.liveBadge, !!coordinate && styles.liveBadgeActive]}><View style={styles.liveDot} /><Text style={styles.liveText}>{coordinate ? 'GPS' : 'Mất GPS'}</Text></View></View></View>
       </SafeAreaView>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -476,7 +477,7 @@ function markerColor(requests: MapPickupRequest[]) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F3F5F7' }, headerSafeArea: { backgroundColor: '#173B57' }, header: { minHeight: 64, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 15, paddingBottom: 12 }, title: { color: '#FFF', fontSize: 22, fontWeight: '900' }, subtitle: { color: '#BFD2E1', fontSize: 10, marginTop: 2 }, liveBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 14, backgroundColor: '#8C3B3B', paddingHorizontal: 9, paddingVertical: 6 }, liveBadgeActive: { backgroundColor: '#176B52' }, liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#FFF' }, liveText: { color: '#FFF', fontSize: 9, fontWeight: '800' },
+  screen: { flex: 1, backgroundColor: '#F3F5F7' }, headerSafeArea: { backgroundColor: '#173B57' }, header: { minHeight: 64, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 15, paddingBottom: 12 }, headerActions: { flexDirection: 'row', alignItems: 'center', gap: 7 }, lastMileLink: { borderWidth: 1, borderColor: '#6F92AA', borderRadius: 14, paddingHorizontal: 9, paddingVertical: 6 }, lastMileLinkText: { color: '#FFF', fontSize: 9, fontWeight: '800' }, title: { color: '#FFF', fontSize: 22, fontWeight: '900' }, subtitle: { color: '#BFD2E1', fontSize: 10, marginTop: 2 }, liveBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 14, backgroundColor: '#8C3B3B', paddingHorizontal: 9, paddingVertical: 6 }, liveBadgeActive: { backgroundColor: '#176B52' }, liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#FFF' }, liveText: { color: '#FFF', fontSize: 9, fontWeight: '800' },
   content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingBottom: 120 }, mapCard: { backgroundColor: '#FFF', overflow: 'hidden' }, map: { width: '100%', height: 310 }, locationPanel: { minHeight: 42, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 13 }, locationText: { color: '#556', fontSize: 10 }, locationError: { flex: 1, color: '#B33', fontSize: 10 }, retryText: { color: ORANGE, fontSize: 10, fontWeight: '800' },
   pickupMarker: { width: 34, height: 34, borderRadius: 17, borderWidth: 2, borderColor: '#FFF', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 3, shadowOffset: { width: 0, height: 2 }, elevation: 5 }, routeMarker: { borderColor: '#FFE45C', borderWidth: 3 }, pickupMarkerText: { color: '#FFF', fontSize: 12, fontWeight: '900' },
   errorBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#3D4148', margin: 10, marginBottom: 0, borderRadius: 8, padding: 11 }, errorText: { flex: 1, color: '#FFF', fontSize: 11, lineHeight: 16 }, closeError: { color: '#FFF', fontSize: 21 }, section: { backgroundColor: '#FFF', marginTop: 9, padding: 14 }, sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, sectionTitle: { color: '#26333D', fontSize: 15, fontWeight: '900' }, loader: { marginVertical: 24 }, emptyText: { color: '#888', fontSize: 11, textAlign: 'center', paddingVertical: 25 },
